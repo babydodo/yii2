@@ -29,14 +29,19 @@ AppAsset::register($this);
 <div class="wrap">
     <?php
     NavBar::begin([
-        'brandLabel' => 'My Company',
+        'brandLabel' => '停调课管理系统',
         'brandUrl' => Yii::$app->homeUrl,
         'options' => [
             'class' => 'navbar-inverse navbar-fixed-top',
         ],
     ]);
     $menuItems = [
-        ['label' => 'Home', 'url' => ['/site/index']],
+        ['label' => '管理员管理', 'url' => ['/adminuser/index']],
+        ['label' => '用户管理', 'url' => ['/user/index']],
+        ['label' => '申请审核', 'url' => ['/application/index']],
+        ['label' => '班级管理', 'url' => ['/classes/index']],
+        ['label' => '教室管理', 'url' => ['/classroom/index']],
+        ['label' => '课程管理', 'url' => ['/course/index']],
     ];
     if (Yii::$app->user->isGuest) {
         $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
@@ -44,7 +49,7 @@ AppAsset::register($this);
         $menuItems[] = '<li>'
             . Html::beginForm(['/site/logout'], 'post')
             . Html::submitButton(
-                'Logout (' . Yii::$app->user->identity->username . ')',
+                '注销 (' . Yii::$app->user->identity->nickname . ')',
                 ['class' => 'btn btn-link logout']
             )
             . Html::endForm()
@@ -68,9 +73,9 @@ AppAsset::register($this);
 
 <footer class="footer">
     <div class="container">
-        <p class="pull-left">&copy; My Company <?= date('Y') ?></p>
+        <p class="pull-left">&copy; 上海建桥学院 <?= date('Y') ?></p>
 
-        <p class="pull-right"><?= Yii::powered() ?></p>
+        <p class="pull-right">技术支持 <a href="#">半度微凉</a></p>
     </div>
 </footer>
 
