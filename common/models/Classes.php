@@ -14,6 +14,7 @@ use Yii;
  *
  * @property Adminuser $adminuser
  * @property CourseRelationship[] $courseRelationships
+ * @property User[] $users
  */
 class Classes extends \yii\db\ActiveRecord
 {
@@ -66,5 +67,21 @@ class Classes extends \yii\db\ActiveRecord
     public function getCourseRelationships()
     {
         return $this->hasMany(CourseRelationship::className(), ['class_id' => 'id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getUsers()
+    {
+        return $this->hasMany(User::className(), ['class_id' => 'id']);
+    }
+
+    /**
+     * @return mixed
+     */
+    public static function allClasses()
+    {
+        return self::find()->select(['name','id'])->indexby('id')->column();
     }
 }

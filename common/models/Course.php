@@ -42,7 +42,6 @@ class Course extends \yii\db\ActiveRecord
             [['number', 'user_id', 'day', 'classroom_id'], 'integer'],
             [['name'], 'string', 'max' => 128],
             [['sec', 'week'], 'string', 'max' => 64],
-            [['number'], 'unique'],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
             [['classroom_id'], 'exist', 'skipOnError' => true, 'targetClass' => Classroom::className(), 'targetAttribute' => ['classroom_id' => 'id']],
         ];

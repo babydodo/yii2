@@ -3,7 +3,6 @@ namespace common\models;
 
 use Yii;
 use yii\base\NotSupportedException;
-use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
 
@@ -12,20 +11,22 @@ use yii\web\IdentityInterface;
  *
  * @property integer $id
  * @property string $username
+ * @property string $nickname
+ * @property integer $class_id
+ * @property string $auth_key
  * @property string $password_hash
  * @property string $password_reset_token
- * @property string $email
- * @property string $auth_key
- * @property integer $status
- * @property integer $created_at
- * @property integer $updated_at
  * @property string $password write-only password
+ *
+ * @property Application[] $applications
+ * @property Application[] $applications0
+ * @property Course[] $courses
+ * @property Elective[] $electives
  */
 class User extends ActiveRecord implements IdentityInterface
 {
     // const STATUS_DELETED = 0;
     // const STATUS_ACTIVE = 10;
-
 
     /**
      * @inheritdoc
@@ -38,23 +39,73 @@ class User extends ActiveRecord implements IdentityInterface
     /**
      * @inheritdoc
      */
-//    public function behaviors()
-//    {
-//        return [
-//            TimestampBehavior::className(),
-//        ];
-//    }
-
-    /**
-     * @inheritdoc
-     */
-//    public function rules()
-//    {
+    public function rules()
+    {
 //        return [
 //            ['status', 'default', 'value' => self::STATUS_ACTIVE],
 //            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
 //        ];
-//    }
+        return [
+            [['username', 'nickname', 'class_id'], 'required'],
+            [['class_id'], 'integer'],
+            [['username'], 'string', 'max' => 255],
+            [['nickname'], 'string', 'max' => 128],
+            [['username'], 'unique'],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'username' => '学号/职工号',
+            'nickname' => '姓名',
+            'class_id' => '教师/班级',
+        ];
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getApplications()
+    {
+        return $this->hasMany(Application::className(), ['user_id' => 'id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getApplications0()
+    {
+        return $this->hasMany(Application::className(), ['teacher_id' => 'id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getCourses()
+    {
+        return $this->hasMany(Course::className(), ['user_id' => 'id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getElectives()
+    {
+        return $this->hasMany(Elective::className(), ['user_id' => 'id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getClass()
+    {
+        return $this->hasOne(Classes::className(), ['id' => 'class_id']);
+    }
 
     /**
      * @inheritdoc
@@ -97,7 +148,6 @@ class User extends ActiveRecord implements IdentityInterface
 
         return static::findOne([
             'password_reset_token' => $token,
-//            'status' => self::STATUS_ACTIVE,
         ]);
     }
 
