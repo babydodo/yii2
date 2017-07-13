@@ -1,11 +1,12 @@
 <?php
-namespace common\models;
+namespace frontend\models;
 
+use common\models\User;
 use Yii;
 use yii\base\Model;
 
 /**
- * Login form
+ * 前台登陆表单模型
  */
 class LoginForm extends Model
 {
@@ -15,25 +16,33 @@ class LoginForm extends Model
 
     private $_user;
 
-
     /**
      * @inheritdoc
      */
     public function rules()
     {
         return [
-            // username and password are both required
             [['username', 'password'], 'required'],
-            // rememberMe must be a boolean value
             ['rememberMe', 'boolean'],
-            // password is validated by validatePassword()
+            // 根据validatePassword()方法验证password
             ['password', 'validatePassword'],
         ];
     }
 
     /**
-     * Validates the password.
-     * This method serves as the inline validation for password.
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'username' => '学号/职工号',
+            'password' => '密码',
+            'rememberMe' => '记住我',
+        ];
+    }
+
+    /**
+     * 验证密码
      *
      * @param string $attribute the attribute currently being validated
      * @param array $params the additional name-value pairs given in the rule
@@ -43,13 +52,13 @@ class LoginForm extends Model
         if (!$this->hasErrors()) {
             $user = $this->getUser();
             if (!$user || !$user->validatePassword($this->password)) {
-                $this->addError($attribute, 'Incorrect username or password.');
+                $this->addError($attribute, '用户名或密码错误');
             }
         }
     }
 
     /**
-     * Logs in a user using the provided username and password.
+     * 根据输入的用户名和密码登陆
      *
      * @return bool whether the user is logged in successfully
      */
@@ -63,7 +72,7 @@ class LoginForm extends Model
     }
 
     /**
-     * Finds user by [[username]]
+     * 根据username找到User表对应记录
      *
      * @return User|null
      */

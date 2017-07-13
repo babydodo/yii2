@@ -8,7 +8,7 @@ use yii\widgets\ActiveForm;
 
 $this->title = '修改用户信息: ' . $model->nickname;
 $this->params['breadcrumbs'][] = ['label' => '用户管理', 'url' => ['index']];
-$this->params['breadcrumbs'][] = 'Update';
+$this->params['breadcrumbs'][] = '修改';
 ?>
 <div class="user-update">
 
@@ -25,7 +25,7 @@ $this->params['breadcrumbs'][] = 'Update';
         <?= $form->field($model,'class_id')->dropDownList(\common\models\Classes::allClasses());?>
 
         <div class="form-group">
-            <?= Html::submitButton('修改', ['class' =>'btn btn-primary']) ?>
+            <?= Html::submitButton('更新', ['class' =>'btn btn-primary']) ?>
         </div>
 
         <?php ActiveForm::end(); ?>

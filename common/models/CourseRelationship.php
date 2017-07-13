@@ -5,7 +5,7 @@ namespace common\models;
 use Yii;
 
 /**
- * This is the model class for table "course_relationship".
+ * course_relationship表模型类
  *
  * @property integer $id
  * @property integer $class_id
@@ -44,8 +44,8 @@ class CourseRelationship extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'class_id' => 'Class ID',
-            'course_id' => 'Course ID',
+            'class_id' => '班级ID',
+            'course_id' => '课程ID',
         ];
     }
 

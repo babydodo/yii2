@@ -5,7 +5,7 @@ namespace common\models;
 use Yii;
 
 /**
- * This is the model class for table "push".
+ * push表模型类
  *
  * @property integer $id
  * @property integer $application_id
@@ -45,9 +45,9 @@ class Push extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'application_id' => 'Application ID',
-            'adminuser_id' => 'Adminuser ID',
-            'status' => 'Status',
+            'application_id' => '申请ID',
+            'adminuser_id' => '审批人ID',
+            'status' => '状态',
         ];
     }
 

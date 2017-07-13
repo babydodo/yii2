@@ -5,7 +5,7 @@ namespace common\models;
 use Yii;
 
 /**
- * This is the model class for table "classroom".
+ * classroom表模型类
  *
  * @property integer $id
  * @property integer $number
@@ -18,6 +18,9 @@ use Yii;
  */
 class Classroom extends \yii\db\ActiveRecord
 {
+    const TYPES_ORDINARY = 0;
+    const TYPES_SPECIAL = 1;
+
     /**
      * @inheritdoc
      */
@@ -46,10 +49,10 @@ class Classroom extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'number' => 'Number',
-            'name' => 'Name',
-            'type' => 'Type',
-            'amount' => 'Amount',
+            'number' => '教室代号',
+            'name' => '教室名称',
+            'type' => '教室类型',
+            'amount' => '最多容纳班级',
         ];
     }
 
@@ -67,5 +70,21 @@ class Classroom extends \yii\db\ActiveRecord
     public function getCourses()
     {
         return $this->hasMany(Course::className(), ['classroom_id' => 'id']);
+    }
+
+    /**
+     * @return string
+     */
+    public function getTypeStr()
+    {
+        return $this->type==self::TYPES_ORDINARY?'普通':'机房';
+    }
+
+    /**
+     * @return array
+     */
+    public static function allTypes()
+    {
+        return [self::TYPES_ORDINARY=>'普通',self::TYPES_SPECIAL=>'机房'];
     }
 }

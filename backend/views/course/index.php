@@ -7,16 +7,17 @@ use yii\grid\GridView;
 /* @var $searchModel backend\models\Course */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = 'Courses';
+$this->title = '课程管理';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
+
 <div class="course-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <p>
-        <?= Html::a('Create Course', ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('新增课程', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
@@ -24,16 +25,19 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
-            'id',
             'number',
             'name',
-            'user_id',
+            ['label' => '教师',
+             'value' => 'user.nickname',
+            ],
             'day',
-            // 'sec',
-            // 'week',
-            // 'classroom_id',
+            'sec',
+            'week',
+            'classroom.name',
+            //缺班级
 
-            ['class' => 'yii\grid\ActionColumn'],
+            ['class' => 'yii\grid\ActionColumn',
+             'template'=>'{update} {delete}'],
         ],
     ]); ?>
 </div>

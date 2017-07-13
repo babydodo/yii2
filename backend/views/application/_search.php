@@ -23,7 +23,13 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'apply_at') ?>
 
-    <?= $form->field($model, 'adjust_at') ?>
+    <?= $form->field($model, 'apply_week') ?>
+
+    <?php // echo $form->field($model, 'adjust_week') ?>
+
+    <?php // echo $form->field($model, 'adjust_day') ?>
+
+    <?php // echo $form->field($model, 'adjust_sec') ?>
 
     <?php // echo $form->field($model, 'classroom_id') ?>
 

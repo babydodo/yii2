@@ -47,10 +47,10 @@ class User extends ActiveRecord implements IdentityInterface
 //        ];
         return [
             [['username', 'nickname', 'class_id'], 'required'],
-            [['class_id'], 'integer'],
-            [['username'], 'string', 'max' => 255],
-            [['nickname'], 'string', 'max' => 128],
-            [['username'], 'unique'],
+            ['class_id', 'integer'],
+            ['username', 'string', 'max' => 255],
+            ['nickname', 'string', 'max' => 128],
+            ['username', 'unique'],
         ];
     }
 
@@ -124,7 +124,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Finds user by username
+     * 根据username找到对应记录
      *
      * @param string $username
      * @return static|null
@@ -135,7 +135,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Finds user by password reset token
+     * 根据password_reset_token找到对应记录
      *
      * @param string $token password reset token
      * @return static|null
@@ -152,7 +152,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Finds out if password reset token is valid
+     * 检验password_reset_token是否有效
      *
      * @param string $token password reset token
      * @return bool
@@ -193,7 +193,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Validates password
+     * 验证密码
      *
      * @param string $password password to validate
      * @return bool if password provided is valid for current user
@@ -204,7 +204,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Generates password hash from password and sets it to the model
+     * 设置密码
      *
      * @param string $password
      */
@@ -222,7 +222,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Generates new password reset token
+     * 生成密码重置令牌
      */
     public function generatePasswordResetToken()
     {
@@ -230,7 +230,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Removes password reset token
+     * 移除密码重置令牌
      */
     public function removePasswordResetToken()
     {

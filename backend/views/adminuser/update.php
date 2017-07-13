@@ -1,21 +1,35 @@
 <?php
 
+use yii\bootstrap\ActiveForm;
 use yii\helpers\Html;
 
 /* @var $this yii\web\View */
 /* @var $model common\models\Adminuser */
 
-$this->title = 'Update Adminuser: ' . $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Adminusers', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = 'Update';
+$this->title = '修改信息: ' . $model->nickname;
+$this->params['breadcrumbs'][] = ['label' => '管理员', 'url' => ['index']];
+$this->params['breadcrumbs'][] = '修改';
 ?>
 <div class="adminuser-update">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <?= $this->render('_form', [
-        'model' => $model,
-    ]) ?>
+    <div class="user-form">
+
+        <?php $form = ActiveForm::begin(); ?>
+
+        <?= $form->field($model, 'username')->textInput(['maxlength' => true]) ?>
+
+        <?= $form->field($model, 'nickname')->textInput(['maxlength' => true]) ?>
+
+        <?= $form->field($model,'email')->textInput(['maxlength' => true]) ?>
+
+        <div class="form-group">
+            <?= Html::submitButton('更新', ['class' =>'btn btn-primary']) ?>
+        </div>
+
+        <?php ActiveForm::end(); ?>
+
+    </div>
 
 </div>

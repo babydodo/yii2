@@ -10,7 +10,7 @@ use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
 /**
- * ClassesController implements the CRUD actions for Classes model.
+ * 班级管理控制器
  */
 class ClassesController extends Controller
 {
@@ -30,7 +30,7 @@ class ClassesController extends Controller
     }
 
     /**
-     * Lists all Classes models.
+     * 列出所有班级信息
      * @return mixed
      */
     public function actionIndex()
@@ -45,7 +45,7 @@ class ClassesController extends Controller
     }
 
     /**
-     * Displays a single Classes model.
+     * 显示单个班级详细信息
      * @param integer $id
      * @return mixed
      */
@@ -57,8 +57,7 @@ class ClassesController extends Controller
     }
 
     /**
-     * Creates a new Classes model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
+     * 新增一个班级
      * @return mixed
      */
     public function actionCreate()
@@ -66,7 +65,7 @@ class ClassesController extends Controller
         $model = new Classes();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            return $this->redirect(['index']);
         } else {
             return $this->render('create', [
                 'model' => $model,
@@ -75,8 +74,7 @@ class ClassesController extends Controller
     }
 
     /**
-     * Updates an existing Classes model.
-     * If update is successful, the browser will be redirected to the 'view' page.
+     * 更新班级信息
      * @param integer $id
      * @return mixed
      */
@@ -85,7 +83,7 @@ class ClassesController extends Controller
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            return $this->redirect(['index']);
         } else {
             return $this->render('update', [
                 'model' => $model,
@@ -94,8 +92,7 @@ class ClassesController extends Controller
     }
 
     /**
-     * Deletes an existing Classes model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * 删除一个班级
      * @param integer $id
      * @return mixed
      */
@@ -107,8 +104,8 @@ class ClassesController extends Controller
     }
 
     /**
-     * Finds the Classes model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
+     * 根据id找到对应班级记录
+     * 如果记录不存在则跳转到404页面
      * @param integer $id
      * @return Classes the loaded model
      * @throws NotFoundHttpException if the model cannot be found
@@ -118,7 +115,7 @@ class ClassesController extends Controller
         if (($model = Classes::findOne($id)) !== null) {
             return $model;
         } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
+            throw new NotFoundHttpException('所访问页面不存在!');
         }
     }
 }

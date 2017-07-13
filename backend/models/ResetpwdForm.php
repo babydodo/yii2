@@ -1,7 +1,9 @@
 <?php
 namespace backend\models;
 
+use common\models\Adminuser;
 use common\models\User;
+use Yii;
 use yii\base\Model;
 
 /**
@@ -35,17 +37,19 @@ class ResetpwdForm extends Model
     
     
     /**
-     * Signs user up.
-     *
-     * @return User|null the saved model or null if saving fails
+     * 更新密码
+     * @return bool
      */
     public function resetPassword($id)
     {
         if (!$this->validate()) {
             return null;
         }
-        
-        $user = User::findOne($id);
+        if (Yii::$app->controller->id=='user') {
+            $user = User::findOne($id);
+        } else {
+            $user = Adminuser::findOne($id);
+        }
         $user->setPassword($this->password);
         $user->removePasswordResetToken();
         

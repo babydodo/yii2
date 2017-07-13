@@ -5,7 +5,7 @@ namespace common\models;
 use Yii;
 
 /**
- * This is the model class for table "course".
+ * course表模型类
  *
  * @property integer $id
  * @property integer $number
@@ -54,13 +54,13 @@ class Course extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'number' => 'Number',
-            'name' => 'Name',
-            'user_id' => 'User ID',
-            'day' => 'Day',
-            'sec' => 'Sec',
-            'week' => 'Week',
-            'classroom_id' => 'Classroom ID',
+            'number' => '课程代号',
+            'name' => '课程名',
+            'user_id' => '教师ID',
+            'day' => '星期',
+            'sec' => '节',
+            'week' => '授课周',
+            'classroom_id' => '教室ID',
         ];
     }
 

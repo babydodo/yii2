@@ -5,12 +5,13 @@ namespace backend\controllers;
 use Yii;
 use common\models\Classroom;
 use backend\models\ClassroomSearch;
+use yii\db\IntegrityException;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
 /**
- * ClassroomController implements the CRUD actions for Classroom model.
+ * 教室管理控制器
  */
 class ClassroomController extends Controller
 {
@@ -30,7 +31,7 @@ class ClassroomController extends Controller
     }
 
     /**
-     * Lists all Classroom models.
+     * 列出所有教室信息
      * @return mixed
      */
     public function actionIndex()
@@ -45,7 +46,7 @@ class ClassroomController extends Controller
     }
 
     /**
-     * Displays a single Classroom model.
+     * 显示单个教室详细信息
      * @param integer $id
      * @return mixed
      */
@@ -57,8 +58,7 @@ class ClassroomController extends Controller
     }
 
     /**
-     * Creates a new Classroom model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
+     * 新增教室
      * @return mixed
      */
     public function actionCreate()
@@ -66,7 +66,7 @@ class ClassroomController extends Controller
         $model = new Classroom();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            return $this->redirect(['index']);
         } else {
             return $this->render('create', [
                 'model' => $model,
@@ -75,8 +75,7 @@ class ClassroomController extends Controller
     }
 
     /**
-     * Updates an existing Classroom model.
-     * If update is successful, the browser will be redirected to the 'view' page.
+     * 修改教室信息
      * @param integer $id
      * @return mixed
      */
@@ -85,7 +84,7 @@ class ClassroomController extends Controller
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            return $this->redirect(['index']);
         } else {
             return $this->render('update', [
                 'model' => $model,
@@ -94,21 +93,23 @@ class ClassroomController extends Controller
     }
 
     /**
-     * Deletes an existing Classroom model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * 删除一个当前没有被关联的教室
      * @param integer $id
      * @return mixed
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
-
+        try {
+            $this->findModel($id)->delete();
+        } catch (IntegrityException $e) {
+            Yii::$app->getSession()->setFlash('error', '该教室仍有关联!');
+        }
         return $this->redirect(['index']);
     }
 
     /**
-     * Finds the Classroom model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
+     * 根据id找到对应教室记录
+     * 如果记录不存在则跳转到404页面
      * @param integer $id
      * @return Classroom the loaded model
      * @throws NotFoundHttpException if the model cannot be found
@@ -118,7 +119,7 @@ class ClassroomController extends Controller
         if (($model = Classroom::findOne($id)) !== null) {
             return $model;
         } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
+            throw new NotFoundHttpException('所访问页面不存在!');
         }
     }
 }

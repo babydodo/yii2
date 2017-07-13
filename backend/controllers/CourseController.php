@@ -10,7 +10,7 @@ use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
 /**
- * CourseController implements the CRUD actions for Course model.
+ * 课程管理控制器
  */
 class CourseController extends Controller
 {
@@ -30,7 +30,7 @@ class CourseController extends Controller
     }
 
     /**
-     * Lists all Course models.
+     * 列出所有课程信息
      * @return mixed
      */
     public function actionIndex()
@@ -45,20 +45,7 @@ class CourseController extends Controller
     }
 
     /**
-     * Displays a single Course model.
-     * @param integer $id
-     * @return mixed
-     */
-    public function actionView($id)
-    {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
-    }
-
-    /**
-     * Creates a new Course model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
+     * 新增课程
      * @return mixed
      */
     public function actionCreate()
@@ -66,7 +53,7 @@ class CourseController extends Controller
         $model = new Course();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            return $this->redirect(['index']);
         } else {
             return $this->render('create', [
                 'model' => $model,
@@ -75,8 +62,7 @@ class CourseController extends Controller
     }
 
     /**
-     * Updates an existing Course model.
-     * If update is successful, the browser will be redirected to the 'view' page.
+     * 更新课程信息
      * @param integer $id
      * @return mixed
      */
@@ -85,7 +71,7 @@ class CourseController extends Controller
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            return $this->redirect(['index']);
         } else {
             return $this->render('update', [
                 'model' => $model,
@@ -94,8 +80,7 @@ class CourseController extends Controller
     }
 
     /**
-     * Deletes an existing Course model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * 删除课程信息
      * @param integer $id
      * @return mixed
      */
@@ -107,8 +92,8 @@ class CourseController extends Controller
     }
 
     /**
-     * Finds the Course model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
+     * 根据id找到对应课程记录
+     * 如果记录不存在则跳转到404页面
      * @param integer $id
      * @return Course the loaded model
      * @throws NotFoundHttpException if the model cannot be found
@@ -118,7 +103,7 @@ class CourseController extends Controller
         if (($model = Course::findOne($id)) !== null) {
             return $model;
         } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
+            throw new NotFoundHttpException('所访问页面不存在!');
         }
     }
 }

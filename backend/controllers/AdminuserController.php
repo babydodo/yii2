@@ -2,15 +2,18 @@
 
 namespace backend\controllers;
 
+use backend\models\CreateAdminuserForm;
+use backend\models\ResetpwdForm;
 use Yii;
 use common\models\Adminuser;
 use backend\models\AdminuserSearch;
+use yii\db\IntegrityException;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
 /**
- * AdminuserController implements the CRUD actions for Adminuser model.
+ * Adminuser模型控制器(实现增删查改动作)
  */
 class AdminuserController extends Controller
 {
@@ -30,7 +33,7 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Lists all Adminuser models.
+     * 列出所有管理员
      * @return mixed
      */
     public function actionIndex()
@@ -45,7 +48,7 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Displays a single Adminuser model.
+     * 显示单个管理员详细信息
      * @param integer $id
      * @return mixed
      */
@@ -57,26 +60,25 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Creates a new Adminuser model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
+     * 新增管理员
      * @return mixed
      */
     public function actionCreate()
     {
-        $model = new Adminuser();
+        $model = new CreateAdminuserForm();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
+        if ($model->load(Yii::$app->request->post())) {
+            if($adminuser = $model->createAdminuser()) {
+                return $this->redirect(['view', 'id' => $adminuser->id]);
+            }
         }
+
+        return $this->render('create', ['model' => $model]);
+
     }
 
     /**
-     * Updates an existing Adminuser model.
-     * If update is successful, the browser will be redirected to the 'view' page.
+     * 更新单个管理员信息
      * @param integer $id
      * @return mixed
      */
@@ -94,21 +96,39 @@ class AdminuserController extends Controller
     }
 
     /**
-     * Deletes an existing Adminuser model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * 更新用户密码
+     */
+    public function actionResetpwd($id)
+    {
+        $model = new ResetpwdForm();
+
+        if ($model->load(Yii::$app->request->post()) && $model->resetPassword($id)) {
+            return $this->redirect(['index']);
+        } else {
+            return $this->render('resetpwd', [
+                'model' => $model,
+            ]);
+        }
+    }
+
+    /**
+     * 删除一个管理员
      * @param integer $id
      * @return mixed
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
-
+        try {
+            $this->findModel($id)->delete();
+        } catch (IntegrityException $e) {
+            Yii::$app->getSession()->setFlash('error', '该管理员仍有关联!');
+        }
         return $this->redirect(['index']);
     }
 
     /**
-     * Finds the Adminuser model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
+     * 根据id找到对应管理员记录
+     * 如果记录不存在则跳转到404页面
      * @param integer $id
      * @return Adminuser the loaded model
      * @throws NotFoundHttpException if the model cannot be found
@@ -118,7 +138,7 @@ class AdminuserController extends Controller
         if (($model = Adminuser::findOne($id)) !== null) {
             return $model;
         } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
+            throw new NotFoundHttpException('所访问页面不存在!');
         }
     }
 }

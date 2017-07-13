@@ -5,7 +5,7 @@ namespace common\models;
 use Yii;
 
 /**
- * This is the model class for table "elective".
+ * elective表模型类
  *
  * @property integer $id
  * @property integer $user_id
@@ -44,8 +44,8 @@ class Elective extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'user_id' => 'User ID',
-            'course_id' => 'Course ID',
+            'user_id' => '学生ID',
+            'course_id' => '课程ID',
         ];
     }
 

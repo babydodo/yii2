@@ -12,7 +12,7 @@ use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
 /**
- * UserController implements the CRUD actions for User model.
+ * User模型控制器(实现增删查改动作)
  */
 class UserController extends Controller
 {
@@ -105,14 +105,14 @@ class UserController extends Controller
 
     /**
      * 根据id找到对应用户记录
-     * 如果用户记录不存在则跳转到404页面
+     * 如果记录不存在则跳转到404页面
      */
     protected function findModel($id)
     {
         if (($model = User::findOne($id)) !== null) {
             return $model;
         } else {
-            throw new NotFoundHttpException('请求的页面不存在.');
+            throw new NotFoundHttpException('所访问页面不存在!');
         }
     }
 }

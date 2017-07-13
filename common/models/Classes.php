@@ -5,7 +5,7 @@ namespace common\models;
 use Yii;
 
 /**
- * This is the model class for table "classes".
+ * classes表模型类
  *
  * @property integer $id
  * @property integer $number
@@ -47,9 +47,9 @@ class Classes extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'number' => 'Number',
-            'name' => 'Name',
-            'adminuser_id' => 'Adminuser ID',
+            'number' => '班级代号',
+            'name' => '班级名称',
+            'adminuser_id' => '辅导员ID',
         ];
     }
 

@@ -18,8 +18,8 @@ class ApplicationSearch extends Application
     public function rules()
     {
         return [
-            [['id', 'course_id', 'user_id', 'apply_at', 'adjust_at', 'classroom_id', 'teacher_id', 'type', 'status'], 'integer'],
-            [['reason', 'remark'], 'safe'],
+            [['id', 'course_id', 'user_id', 'apply_at', 'adjust_day', 'classroom_id', 'teacher_id', 'type', 'status'], 'integer'],
+            [['apply_week', 'adjust_week', 'adjust_sec', 'reason', 'remark'], 'safe'],
         ];
     }
 
@@ -63,14 +63,17 @@ class ApplicationSearch extends Application
             'course_id' => $this->course_id,
             'user_id' => $this->user_id,
             'apply_at' => $this->apply_at,
-            'adjust_at' => $this->adjust_at,
+            'adjust_day' => $this->adjust_day,
             'classroom_id' => $this->classroom_id,
             'teacher_id' => $this->teacher_id,
             'type' => $this->type,
             'status' => $this->status,
         ]);
 
-        $query->andFilterWhere(['like', 'reason', $this->reason])
+        $query->andFilterWhere(['like', 'apply_week', $this->apply_week])
+            ->andFilterWhere(['like', 'adjust_week', $this->adjust_week])
+            ->andFilterWhere(['like', 'adjust_sec', $this->adjust_sec])
+            ->andFilterWhere(['like', 'reason', $this->reason])
             ->andFilterWhere(['like', 'remark', $this->remark]);
 
         return $dataProvider;

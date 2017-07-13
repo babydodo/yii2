@@ -18,7 +18,13 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'apply_at')->textInput() ?>
 
-    <?= $form->field($model, 'adjust_at')->textInput() ?>
+    <?= $form->field($model, 'apply_week')->textInput(['maxlength' => true]) ?>
+
+    <?= $form->field($model, 'adjust_week')->textInput(['maxlength' => true]) ?>
+
+    <?= $form->field($model, 'adjust_day')->textInput() ?>
+
+    <?= $form->field($model, 'adjust_sec')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'classroom_id')->textInput() ?>
 
