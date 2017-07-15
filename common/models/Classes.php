@@ -35,7 +35,7 @@ class Classes extends \yii\db\ActiveRecord
             [['number', 'name', 'adminuser_id'], 'required'],
             [['number', 'adminuser_id'], 'integer'],
             [['name'], 'string', 'max' => 128],
-            [['number'], 'unique'],
+            [['number', 'name'], 'unique'],
             [['adminuser_id'], 'exist', 'skipOnError' => true, 'targetClass' => Adminuser::className(), 'targetAttribute' => ['adminuser_id' => 'id']],
         ];
     }

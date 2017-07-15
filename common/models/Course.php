@@ -2,6 +2,7 @@
 
 namespace common\models;
 
+use function GuzzleHttp\Psr7\_caseless_remove;
 use Yii;
 
 /**
@@ -24,6 +25,14 @@ use Yii;
  */
 class Course extends \yii\db\ActiveRecord
 {
+    const MONDAY = 1;
+    const TUESDAY = 2;
+    const WEDNESDAY = 3;
+    const THURSDAY = 4;
+    const FRIDAY = 5;
+    const SATURDAY = 6;
+    const SUNDAY = 7;
+
     /**
      * @inheritdoc
      */
@@ -102,5 +111,39 @@ class Course extends \yii\db\ActiveRecord
     public function getElectives()
     {
         return $this->hasMany(Elective::className(), ['course_id' => 'id']);
+    }
+
+    /**
+     * @return string
+     */
+    public function getDayStr()
+    {
+        switch ($this->day) {
+            case self::MONDAY : $dayStr = '周一'; break;
+            case self::TUESDAY : $dayStr = '周二'; break;
+            case self::WEDNESDAY : $dayStr = '周三'; break;
+            case self::THURSDAY : $dayStr = '周四'; break;
+            case self::FRIDAY : $dayStr = '周五'; break;
+            case self::SATURDAY : $dayStr = '周六'; break;
+            case self::SUNDAY : $dayStr = '周日'; break;
+            default : $dayStr = NULL;
+        }
+        return $dayStr;
+    }
+
+    /**
+     * @return array
+     */
+    public static function allDays()
+    {
+        return [
+            self::MONDAY => '周一',
+            self::TUESDAY => '周二',
+            self::WEDNESDAY => '周三',
+            self::THURSDAY => '周四',
+            self::FRIDAY => '周五',
+            self::SATURDAY => '周六',
+            self::SUNDAY => '周日',
+        ];
     }
 }

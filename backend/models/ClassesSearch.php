@@ -13,13 +13,22 @@ use common\models\Classes;
 class ClassesSearch extends Classes
 {
     /**
+     * 增加counselor属性
+     * @return array
+     */
+    public function attributes()
+    {
+        return array_merge(parent::attributes(), ['counselor']);
+    }
+
+    /**
      * @inheritdoc
      */
     public function rules()
     {
         return [
             [['id', 'number', 'adminuser_id'], 'integer'],
-            [['name'], 'safe'],
+            [['name', 'counselor'], 'safe'],
         ];
     }
 
@@ -41,12 +50,13 @@ class ClassesSearch extends Classes
      */
     public function search($params)
     {
-        $query = Classes::find();
+        $query = Classes::find()->where(['not',['classes.id'=>1]]);
 
         // add conditions that should always apply here
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'pagination' => ['pageSize'=>10],
         ]);
 
         $this->load($params);
@@ -57,14 +67,28 @@ class ClassesSearch extends Classes
             return $dataProvider;
         }
 
+        // 等值连接adminuser表与classes表
+        // $query->join('INNER JOIN','adminuser','classes.adminuser_id = adminuser.id');
+        // $query->innerJoin('adminuser');
+        // joinWith()方法默认使用左连接
+        $query->joinWith('adminuser');
+
+
         // grid filtering conditions
         $query->andFilterWhere([
-            'id' => $this->id,
-            'number' => $this->number,
+            // 'classes.id' => $this->id,
             'adminuser_id' => $this->adminuser_id,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name]);
+        $query->andFilterWhere(['like', 'number', $this->number])
+            ->andFilterWhere(['like', 'name', $this->name])
+            ->andFilterWhere(['like', 'adminuser.nickname', $this->counselor]);
+
+        // 增加counselor属性正倒排序
+        $dataProvider->sort->attributes['counselor'] = [
+            'asc'=>['adminuser.nickname'=>SORT_ASC],
+            'desc'=>['adminuser.nickname'=>SORT_DESC],
+        ];
 
         return $dataProvider;
     }

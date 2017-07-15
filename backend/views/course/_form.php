@@ -16,9 +16,9 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'user_id')->textInput() ?>
+    <?= $form->field($model, 'user_id')->dropDownList(\common\models\User::allTeachers()) ?>
 
-    <?= $form->field($model, 'day')->textInput() ?>
+    <?= $form->field($model, 'day')->dropDownList(\common\models\Course::allDays()) ?>
 
     <?= $form->field($model, 'sec')->textInput(['maxlength' => true]) ?>
 

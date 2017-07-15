@@ -25,8 +25,10 @@ $this->params['breadcrumbs'][] = $this->title;
 
             'number',
             'name',
-            ['label'=>'类型',
-             'value'=>'typeStr',
+            ['label' => '类型',
+             'attribute' => 'type',
+             'value' => 'typeStr',
+             'filter' => \common\models\Classroom::allTypes(),
             ],
             'amount',
 

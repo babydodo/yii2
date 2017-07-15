@@ -12,9 +12,9 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'number')->textInput() ?>
+    <?= $form->field($model, 'number', ['enableAjaxValidation' => true])->textInput() ?>
 
-    <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'name', ['enableAjaxValidation' => true])->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'adminuser_id')->dropDownList(\common\models\Adminuser::allAdminusers());?>
 

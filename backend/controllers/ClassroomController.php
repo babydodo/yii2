@@ -9,6 +9,7 @@ use yii\db\IntegrityException;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\widgets\ActiveForm;
 
 /**
  * 教室管理控制器
@@ -65,6 +66,13 @@ class ClassroomController extends Controller
     {
         $model = new Classroom();
 
+        if (Yii::$app->request->isAjax) {
+            // 块赋值验证
+            $model->load($_POST);
+            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
+            return  ActiveForm::validate($model);
+        }
+
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['index']);
         } else {
@@ -82,6 +90,13 @@ class ClassroomController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+
+        if (Yii::$app->request->isAjax) {
+            // 块赋值验证
+            $model->load($_POST);
+            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
+            return  ActiveForm::validate($model);
+        }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['index']);

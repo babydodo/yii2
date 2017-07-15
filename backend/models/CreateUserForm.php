@@ -23,7 +23,7 @@ class CreateUserForm extends Model
         return [
             ['username', 'trim'],
             ['username', 'required'],
-            ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => '用户名已存在！'],
+            ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => '学号已存在！'],
             ['username', 'string', 'min' => 2, 'max' => 255],
 
             ['nickname', 'required'],

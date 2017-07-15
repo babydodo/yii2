@@ -11,6 +11,9 @@ use yii\db\IntegrityException;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\widgets\ActiveForm;
+
+//use yii\widgets\ActiveForm;
 
 /**
  * Adminuser模型控制器(实现增删查改动作)
@@ -67,6 +70,13 @@ class AdminuserController extends Controller
     {
         $model = new CreateAdminuserForm();
 
+        if (Yii::$app->request->isAjax) {
+            // 块赋值验证
+            $model->load($_POST);
+            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
+            return  ActiveForm::validate($model);
+        }
+
         if ($model->load(Yii::$app->request->post())) {
             if($adminuser = $model->createAdminuser()) {
                 return $this->redirect(['view', 'id' => $adminuser->id]);
@@ -85,6 +95,13 @@ class AdminuserController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+
+        if (Yii::$app->request->isAjax) {
+            // 块赋值验证
+            $model->load($_POST);
+            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
+            return ActiveForm::validate($model);
+        }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);

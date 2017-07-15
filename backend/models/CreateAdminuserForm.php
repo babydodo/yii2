@@ -24,7 +24,7 @@ class CreateAdminuserForm extends Model
         return [
             ['username', 'trim'],
             ['username', 'required'],
-            ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => '用户名已存在！'],
+            ['username', 'unique', 'targetClass' => '\common\models\Adminuser', 'message' => '职工号已存在！'],
             ['username', 'string', 'min' => 2, 'max' => 255],
 
             ['nickname', 'required'],

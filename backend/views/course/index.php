@@ -27,14 +27,22 @@ $this->params['breadcrumbs'][] = $this->title;
 
             'number',
             'name',
-            ['label' => '教师',
+            ['attribute' => 'teacher',
+             'label' => '教师',
              'value' => 'user.nickname',
             ],
-            'day',
+            ['attribute' => 'day',
+             'label' => '星期',
+             'value' => 'dayStr',
+             'filter' => \common\models\Course::allDays(),
+            ],
             'sec',
             'week',
-            'classroom.name',
-            //缺班级
+            ['attribute' => 'classroomName',
+             'label' => '教室',
+             'value' => 'classroom.name',
+            ],
+            // 缺班级
 
             ['class' => 'yii\grid\ActionColumn',
              'template'=>'{update} {delete}'],

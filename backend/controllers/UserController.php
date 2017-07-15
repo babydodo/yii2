@@ -10,6 +10,7 @@ use backend\models\UserSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\widgets\ActiveForm;
 
 /**
  * User模型控制器(实现增删查改动作)
@@ -52,6 +53,13 @@ class UserController extends Controller
     {
         $model = new CreateUserForm();
 
+        if (Yii::$app->request->isAjax) {
+            // 块赋值验证
+            $model->load($_POST);
+            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
+            return  ActiveForm::validate($model);
+        }
+
         if ($model->load(Yii::$app->request->post()) && $model->createUser()) {
             return $this->redirect(['index']);
         } else {
@@ -67,6 +75,13 @@ class UserController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+
+        if (Yii::$app->request->isAjax) {
+            // 块赋值验证
+            $model->load($_POST);
+            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
+            return  ActiveForm::validate($model);
+        }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['index']);

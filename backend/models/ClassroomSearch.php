@@ -2,17 +2,17 @@
 
 namespace backend\models;
 
-use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use common\models\Classroom;
 
 /**
- * ClassroomSearch represents the model behind the search form about `common\models\Classroom`.
+ * 教室管理搜索过滤类
  */
 class ClassroomSearch extends Classroom
 {
     /**
+     * 属性验证规则
      * @inheritdoc
      */
     public function rules()
@@ -33,39 +33,36 @@ class ClassroomSearch extends Classroom
     }
 
     /**
-     * Creates data provider instance with search query applied
-     *
+     * 根据过滤条件提供数据
      * @param array $params
-     *
      * @return ActiveDataProvider
      */
     public function search($params)
     {
         $query = Classroom::find();
 
-        // add conditions that should always apply here
+        // 此处可添加初始表格限制条件
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'pagination' => ['pageSize'=>10], //分页
         ]);
 
         $this->load($params);
 
+        // 验证输入数据是否符合规则
         if (!$this->validate()) {
-            // uncomment the following line if you do not want to return any records when validation fails
-            // $query->where('0=1');
             return $dataProvider;
         }
 
-        // grid filtering conditions
+        // 表格过滤条件
         $query->andFilterWhere([
-            'id' => $this->id,
-            'number' => $this->number,
+            // 'classroom.id' => $this->id,
             'type' => $this->type,
             'amount' => $this->amount,
         ]);
-
-        $query->andFilterWhere(['like', 'name', $this->name]);
+        $query->andFilterWhere(['like', 'number', $this->number])
+            ->andFilterWhere(['like', 'name', $this->name]);
 
         return $dataProvider;
     }

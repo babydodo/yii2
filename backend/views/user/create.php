@@ -18,7 +18,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
         <?php $form = ActiveForm::begin(); ?>
 
-        <?= $form->field($model, 'username')->textInput(['maxlength' => true]) ?>
+        <?= $form->field($model, 'username', ['enableAjaxValidation' => true])->textInput(['maxlength' => true]) ?>
 
         <?= $form->field($model, 'nickname')->textInput(['maxlength' => true]) ?>
 

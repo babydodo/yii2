@@ -8,6 +8,7 @@ use backend\models\ClassesSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\widgets\ActiveForm;
 
 /**
  * 班级管理控制器
@@ -64,6 +65,13 @@ class ClassesController extends Controller
     {
         $model = new Classes();
 
+        if (Yii::$app->request->isAjax) {
+            // 块赋值验证
+            $model->load($_POST);
+            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
+            return  ActiveForm::validate($model);
+        }
+
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['index']);
         } else {
@@ -81,6 +89,13 @@ class ClassesController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+
+        if (Yii::$app->request->isAjax) {
+            // 块赋值验证
+            $model->load($_POST);
+            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
+            return  ActiveForm::validate($model);
+        }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['index']);

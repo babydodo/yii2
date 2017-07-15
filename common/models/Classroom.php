@@ -38,7 +38,7 @@ class Classroom extends \yii\db\ActiveRecord
             [['number', 'name', 'type', 'amount'], 'required'],
             [['number', 'type', 'amount'], 'integer'],
             [['name'], 'string', 'max' => 128],
-            [['number'], 'unique'],
+            [['number', 'name'], 'unique'],
         ];
     }
 

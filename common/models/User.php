@@ -236,4 +236,9 @@ class User extends ActiveRecord implements IdentityInterface
     {
         $this->password_reset_token = null;
     }
+
+    public static function allTeachers()
+    {
+        return static::find()->select(['nickname','id'])->where(['class_id'=>1])->indexBy('id')->column();
+    }
 }
