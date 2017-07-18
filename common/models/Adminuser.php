@@ -12,6 +12,7 @@ use yii\base\NotSupportedException;
  * @property integer $id
  * @property string $username
  * @property string $nickname
+ * @property integer $role
  * @property string $auth_key
  * @property string $password_hash
  * @property string $password_reset_token
@@ -22,6 +23,11 @@ use yii\base\NotSupportedException;
  */
 class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
 {
+    const DIRECTOR = 1;
+    const DEAN = 2;
+    const LABORATORY = 3;
+    const COUNSELOR = 4;
+
     /**
      * @inheritdoc
      */
@@ -36,12 +42,13 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            [['username', 'nickname'], 'required'],
+            [['username', 'nickname', 'role'], 'required'],
             [['username', 'email'], 'string', 'max' => 255],
             ['username', 'unique'],
             ['nickname', 'string', 'max' => 128],
-
+            [['role'], 'integer'],
             ['email', 'email'],
+            ['email', 'default', 'value' => null],
         ];
     }
 
@@ -54,6 +61,7 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
             'id' => 'ID',
             'username' => '教职工号',
             'nickname' => '姓名',
+            'role' => '角色',
             'email' => '邮箱',
         ];
     }
@@ -204,8 +212,43 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
         $this->password_reset_token = null;
     }
 
+    /**
+     * @return null|string
+     */
+    public function getRoleStr()
+    {
+        switch ($this->role) {
+            case self::DIRECTOR : $role = '系主任'; break;
+            case self::DEAN : $role = '副院长'; break;
+            case self::LABORATORY : $role = '实验中心'; break;
+            case self::COUNSELOR : $role = '辅导员'; break;
+            default : $role = NULL;
+        }
+        return $role;
+    }
+
+    /**
+     * 以id为索引的所有管理员数组
+     * @return array
+     */
     public static function allAdminusers()
     {
         return self::find()->select(['nickname','id'])->indexBy('id')->column();
     }
+
+    /**
+     * 所有角色数组
+     * @return array
+     */
+    public static function allRoles()
+    {
+        return [
+            self::DIRECTOR => '系主任',
+            self::DEAN => '副院长',
+            self::LABORATORY => '实验中心',
+            self::COUNSELOR => '辅导员',
+        ];
+    }
+
+
 }

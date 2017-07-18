@@ -20,9 +20,9 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'day')->dropDownList(\common\models\Course::allDays()) ?>
 
-    <?= $form->field($model, 'sec')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'sec')->checkboxList(\common\models\Course::allSections()) ?>
 
-    <?= $form->field($model, 'week')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'week')->checkboxList(\common\models\Course::allWeeks()) ?>
 
     <?= $form->field($model, 'classroom_id')->textInput() ?>
 

@@ -22,6 +22,8 @@ $this->params['breadcrumbs'][] = '修改';
 
         <?= $form->field($model, 'nickname')->textInput(['maxlength' => true]) ?>
 
+        <?= $form->field($model, 'role')->dropDownList(\common\models\Adminuser::allRoles(),['prompt'=>'请选择角色']) ?>
+
         <?= $form->field($model,'email')->textInput(['maxlength' => true]) ?>
 
         <div class="form-group">

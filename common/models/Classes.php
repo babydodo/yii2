@@ -2,8 +2,6 @@
 
 namespace common\models;
 
-use Yii;
-
 /**
  * classes表模型类
  *
@@ -64,9 +62,10 @@ class Classes extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getCourseRelationships()
+    public function getCourses()
     {
-        return $this->hasMany(CourseRelationship::className(), ['class_id' => 'id']);
+        return $this->hasMany(Course::className(), ['id' => 'course_id'])
+                    ->viaTable('course_relationship', ['class_id'=>'id']);
     }
 
     /**

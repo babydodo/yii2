@@ -12,6 +12,7 @@ class CreateAdminuserForm extends Model
 {
     public $username;
     public $nickname;
+    public $role;
     public $password;
     public $password_repeat;
     public $email;
@@ -29,6 +30,9 @@ class CreateAdminuserForm extends Model
 
             ['nickname', 'required'],
             ['nickname', 'string', 'max' => 128],
+
+            ['role', 'required'],
+            ['role', 'integer'],
 
             ['email', 'email'],
 
@@ -49,6 +53,7 @@ class CreateAdminuserForm extends Model
             'id' => 'ID',
             'username' => '职工号',
             'nickname' => '姓名',
+            'role' => '角色',
             'password' => '密码',
             'password_repeat' => '确认密码',
             'email' => '邮箱',
@@ -67,8 +72,10 @@ class CreateAdminuserForm extends Model
         }
         
         $Adminuser = new Adminuser();
+
         $Adminuser->username = $this->username;
         $Adminuser->nickname = $this->nickname;
+        $Adminuser->role = $this->role;
         $Adminuser->email = $this->email;
         $Adminuser->setPassword($this->password);
         $Adminuser->generateAuthKey();

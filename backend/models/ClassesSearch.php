@@ -82,7 +82,7 @@ class ClassesSearch extends Classes
 
         $query->andFilterWhere(['like', 'number', $this->number])
             ->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'adminuser.nickname', $this->counselor]);
+            ->andFilterWhere(['like', 'adminuser.nickname', $this->getAttribute('counselor')]);
 
         // 增加counselor属性正倒排序
         $dataProvider->sort->attributes['counselor'] = [

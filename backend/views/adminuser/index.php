@@ -25,7 +25,11 @@ $this->params['breadcrumbs'][] = $this->title;
 
             'username',
             'nickname',
-            // 'email:email',
+            ['attribute'=>'role',
+             'value' => 'roleStr',
+             'filter' => \common\models\Adminuser::allRoles(),
+            ],
+            'email:email',
 
             ['class' => 'yii\grid\ActionColumn',
                 'template' => '{view} {update} {resetpwd} {privilege} {delete}',

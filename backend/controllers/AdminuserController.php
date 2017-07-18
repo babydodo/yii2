@@ -8,9 +8,12 @@ use Yii;
 use common\models\Adminuser;
 use backend\models\AdminuserSearch;
 use yii\db\IntegrityException;
+use yii\filters\AccessControl;
+use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use Yii\web\Response;
 use yii\widgets\ActiveForm;
 
 //use yii\widgets\ActiveForm;
@@ -26,6 +29,20 @@ class AdminuserController extends Controller
     public function behaviors()
     {
         return [
+            'access' => [
+                'class' => AccessControl::className(),
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'matchCallback' => function ($rule, $action) {
+                            if (!Yii::$app->user->isGuest) {
+                                return Yii::$app->user->identity->role == 1 ? true : false;
+                            }
+                            return false;
+                        },
+                    ],
+                ],
+            ],
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
@@ -69,22 +86,19 @@ class AdminuserController extends Controller
     public function actionCreate()
     {
         $model = new CreateAdminuserForm();
+        // 块赋值验证
+        $load = $model->load(Yii::$app->request->post());
 
         if (Yii::$app->request->isAjax) {
-            // 块赋值验证
-            $model->load($_POST);
-            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
-            return  ActiveForm::validate($model);
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($model);
         }
 
-        if ($model->load(Yii::$app->request->post())) {
-            if($adminuser = $model->createAdminuser()) {
-                return $this->redirect(['view', 'id' => $adminuser->id]);
-            }
+        if($load && $model->createAdminuser()) {
+            return $this->redirect(['index']);
         }
-
+        
         return $this->render('create', ['model' => $model]);
-
     }
 
     /**
@@ -95,20 +109,18 @@ class AdminuserController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+        // 块赋值验证
+        $load = $model->load(Yii::$app->request->post());
 
         if (Yii::$app->request->isAjax) {
-            // 块赋值验证
-            $model->load($_POST);
-            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
+            Yii::$app->response->format = Response::FORMAT_JSON;
             return ActiveForm::validate($model);
         }
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if ($load && $model->save()) {
+            return $this->redirect(['index']);
         } else {
-            return $this->render('update', [
-                'model' => $model,
-            ]);
+            return $this->render('update', ['model' => $model]);
         }
     }
 
@@ -122,9 +134,7 @@ class AdminuserController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->resetPassword($id)) {
             return $this->redirect(['index']);
         } else {
-            return $this->render('resetpwd', [
-                'model' => $model,
-            ]);
+            return $this->render('resetpwd', ['model' => $model]);
         }
     }
 

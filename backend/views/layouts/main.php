@@ -35,16 +35,28 @@ AppAsset::register($this);
             'class' => 'navbar-inverse navbar-fixed-top',
         ],
     ]);
-    $menuItems = [
-        ['label' => '管理员管理', 'url' => ['/adminuser/index']],
-        ['label' => '用户管理', 'url' => ['/user/index']],
-        ['label' => '申请审核', 'url' => ['/application/index']],
-        ['label' => '班级管理', 'url' => ['/classes/index']],
-        ['label' => '教室管理', 'url' => ['/classroom/index']],
-        ['label' => '课程管理', 'url' => ['/course/index']],
-    ];
+
+    // 系主任显示菜单
+    if (!Yii::$app->user->isGuest && Yii::$app->user->identity->role == 1) {
+        $menuItems = [
+            ['label' => '管理员管理', 'url' => ['/adminuser/index']],
+            ['label' => '用户管理', 'url' => ['/user/index']],
+            ['label' => '班级管理', 'url' => ['/classes/index']],
+            ['label' => '教室管理', 'url' => ['/classroom/index']],
+            ['label' => '课程管理', 'url' => ['/course/index']],
+        ];
+    }
+
+    // 其余角色显示菜单
+    if (!Yii::$app->user->isGuest && in_array(Yii::$app->user->identity->role, [2,3,4], true) ) {
+        $menuItems = [
+            ['label' => '申请审核', 'url' => ['/application/index']],
+        ];
+    }
+
+    // 登陆与注销项
     if (Yii::$app->user->isGuest) {
-        $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
+        $menuItems[] = ['label' => '登陆', 'url' => ['/site/login']];
     } else {
         $menuItems[] = '<li>'
             . Html::beginForm(['/site/logout'], 'post')

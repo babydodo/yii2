@@ -22,6 +22,8 @@ $this->params['breadcrumbs'][] = $this->title;
 
         <?= $form->field($model, 'nickname')->textInput(['maxlength' => true]) ?>
 
+        <?= $form->field($model, 'role')->dropDownList(\common\models\Adminuser::allRoles(), ['prompt'=>'请选择角色']) ?>
+
         <?= $form->field($model, 'password')->passwordInput() ?>
 
         <?= $form->field($model, 'password_repeat')->passwordInput() ?>

@@ -2,9 +2,6 @@
 
 namespace common\models;
 
-use function GuzzleHttp\Psr7\_caseless_remove;
-use Yii;
-
 /**
  * course表模型类
  *
@@ -39,6 +36,16 @@ class Course extends \yii\db\ActiveRecord
     public static function tableName()
     {
         return 'course';
+    }
+
+    /**
+     * @return bool
+     */
+    public function beforeValidate()
+    {
+        $this->sec = is_array($this->sec)?implode('-', $this->sec):$this->sec;
+        $this->week = is_array($this->week)?implode('-', $this->week):$this->week;
+        return parent::beforeValidate();
     }
 
     /**
@@ -100,9 +107,10 @@ class Course extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getCourseRelationships()
+    public function getClasses()
     {
-        return $this->hasMany(CourseRelationship::className(), ['course_id' => 'id']);
+        return $this->hasMany(Classes::className(), ['id' => 'class_id'])
+                    ->viaTable('course_relationship', ['course_id'=>'id']);
     }
 
     /**
@@ -132,6 +140,7 @@ class Course extends \yii\db\ActiveRecord
     }
 
     /**
+     * 周一到周日数组
      * @return array
      */
     public static function allDays()
@@ -145,5 +154,42 @@ class Course extends \yii\db\ActiveRecord
             self::SATURDAY => '周六',
             self::SUNDAY => '周日',
         ];
+    }
+
+    /**
+     * 1到12节课数组
+     * @return mixed
+     */
+    public static function allSections()
+    {
+        $secList = array();
+        for ($i=1;$i<=12;$i++) {
+            $secList[$i]=$i;
+        }
+        return $secList;
+    }
+
+    /**
+     * 1到16周数组
+     * @return mixed
+     */
+    public static function allWeeks()
+    {
+        $weekList = array();
+        for ($i=1;$i<=16;$i++) {
+            $weekList[$i]=$i;
+        }
+        return $weekList;
+    }
+
+    /**
+     * 格式化sec与week属性.
+     * 如果属性是字符串则转化为数组.
+     */
+    public function formatAttributes()
+    {
+        $this->sec = is_string($this->sec) ? explode('-', $this->sec): $this->sec;
+        $this->week = is_string($this->week) ? explode('-', $this->week) : $this->week;
+        return ;
     }
 }

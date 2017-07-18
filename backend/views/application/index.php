@@ -40,5 +40,9 @@ $this->params['breadcrumbs'][] = $this->title;
 
             ['class' => 'yii\grid\ActionColumn'],
         ],
+        'emptyText'=>'当前没有申请, 无需审核~',
+        'emptyTextOptions'=>['style'=>'color:red;font-weight:bold;font-size:24px'],
+        // 'layout' => "{summary}\n{items}\n{pager}"
+        'showOnEmpty'=>false,
     ]); ?>
 </div>

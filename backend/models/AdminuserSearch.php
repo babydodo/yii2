@@ -18,7 +18,7 @@ class AdminuserSearch extends Adminuser
     public function rules()
     {
         return [
-            [['id'], 'integer'],
+            [['id', 'role'], 'integer'],
             [['username', 'nickname', 'email'], 'safe'],
         ];
     }
@@ -56,6 +56,7 @@ class AdminuserSearch extends Adminuser
         }
 
         // 表格过滤条件
+        $query->andFilterWhere(['role' => $this->role]);
         $query->andFilterWhere(['like', 'username', $this->username])
             ->andFilterWhere(['like', 'nickname', $this->nickname])
             ->andFilterWhere(['like', 'email', $this->email]);
