@@ -2,10 +2,12 @@
 
 namespace backend\controllers;
 
+use common\models\Course;
 use Yii;
 use common\models\Classes;
 use backend\models\ClassesSearch;
 use yii\filters\AccessControl;
+use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -122,6 +124,22 @@ class ClassesController extends Controller
     }
 
     /**
+     * 显示班级详细课表
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionShowCourses($id)
+    {
+        // 班级课程表
+        $model = Course::find()->innerJoinWith('classes');
+        $model->where(['classes.id'=>$id]);
+        $model->andWhere('FIND_IN_SET(3,week)');
+        $courses = $model->all();
+
+        return $this->renderAjax('showCourses', ['courses' => $courses]);
+    }
+
+    /**
      * 删除一个班级
      * @param integer $id
      * @return mixed
@@ -129,9 +147,10 @@ class ClassesController extends Controller
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
         return $this->redirect(['index']);
     }
+
+
 
     /**
      * 根据id找到对应班级记录

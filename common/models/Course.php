@@ -17,8 +17,9 @@ namespace common\models;
  * @property Application[] $applications
  * @property User $user
  * @property Classroom $classroom
- * @property CourseRelationship[] $courseRelationships
- * @property Elective[] $electives
+ * @property Course[] $courses
+ * @property Classes[] $classes
+ * @property Elective[] $students
  */
 class Course extends \yii\db\ActiveRecord
 {
@@ -39,28 +40,52 @@ class Course extends \yii\db\ActiveRecord
     }
 
     /**
-     * @return bool
-     */
-    public function beforeValidate()
-    {
-        $this->sec = is_array($this->sec)?implode('-', $this->sec):$this->sec;
-        $this->week = is_array($this->week)?implode('-', $this->week):$this->week;
-        return parent::beforeValidate();
-    }
-
-    /**
      * @inheritdoc
      */
     public function rules()
     {
         return [
             [['number', 'name', 'user_id', 'day', 'sec', 'week', 'classroom_id'], 'required'],
-            [['number', 'user_id', 'day', 'classroom_id'], 'integer'],
+            [['number', 'user_id', 'day'], 'integer'],
             [['name'], 'string', 'max' => 128],
+
+            [['sec', 'week'],'filter', 'filter' => function ($value) {
+                return implode(',', $value);
+            }],
             [['sec', 'week'], 'string', 'max' => 64],
+
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
-            [['classroom_id'], 'exist', 'skipOnError' => true, 'targetClass' => Classroom::className(), 'targetAttribute' => ['classroom_id' => 'id']],
+
+            ['classroom_id', 'filter', 'filter' => function ($value) {
+                return Classroom::find()->where(['name'=>$value])->scalar();
+            }, 'skipOnArray' => true],
+
+            ['classroom_id', 'exist', 'skipOnError' => true, 'targetClass' => Classroom::className(), 'targetAttribute' => ['classroom_id' => 'id']],
+            ['classroom_id', 'validateClassroom'],
         ];
+    }
+
+    /**
+     * 验证教室在所选时间段是否空闲(验证规则)
+     * @param string $attribute
+     * @param array $params
+     */
+    public function validateClassroom($attribute, $params)
+    {
+        if (!$this->hasErrors()) {
+            $secSelected = str_replace(',', '|', $this->sec);
+            $weekSelected = str_replace(',', '|', $this->week);
+
+            $query = Course::find();
+            $query->andFilterWhere(['not', ['id'=>$this->id]]);
+            $query->andWhere(['day'=>$this->day]);
+            $query->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(".$secSelected.")[^0-9]+'");
+            $query->andWhere("CONCAT(',',`week`,',') REGEXP '[^0-9]+(".$weekSelected.")[^0-9]+'");
+
+            if ($query->andWhere(['classroom_id'=>$this->classroom_id])->one()) {
+                $this->addError($attribute, '教室已被占用');
+            }
+        }
     }
 
     /**
@@ -72,11 +97,12 @@ class Course extends \yii\db\ActiveRecord
             'id' => 'ID',
             'number' => '课程代号',
             'name' => '课程名',
-            'user_id' => '教师ID',
+            'user_id' => '教师',
             'day' => '星期',
             'sec' => '节',
             'week' => '授课周',
-            'classroom_id' => '教室ID',
+            'classroom_id' => '教室',
+            'classroom_number' => '教室代号',
         ];
     }
 
@@ -116,9 +142,10 @@ class Course extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getElectives()
+    public function getStudents()
     {
-        return $this->hasMany(Elective::className(), ['course_id' => 'id']);
+        return $this->hasMany(User::className(), ['id' => 'user_id'])
+                    ->viaTable('elective', ['course_id'=>'id']);
     }
 
     /**
@@ -188,8 +215,8 @@ class Course extends \yii\db\ActiveRecord
      */
     public function formatAttributes()
     {
-        $this->sec = is_string($this->sec) ? explode('-', $this->sec): $this->sec;
-        $this->week = is_string($this->week) ? explode('-', $this->week) : $this->week;
+        $this->sec = is_string($this->sec) ? explode(',', $this->sec): $this->sec;
+        $this->week = is_string($this->week) ? explode(',', $this->week) : $this->week;
         return ;
     }
 }

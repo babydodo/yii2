@@ -8,6 +8,9 @@ use common\models\Course;
 
 /**
  * 课程管理搜索过滤类
+ *
+ * @property mixed classroomName
+ * @property mixed teacher
  */
 class CourseSearch extends Course
 {
@@ -77,9 +80,17 @@ class CourseSearch extends Course
         $query->andFilterWhere(['like', 'course.number', $this->name])
             ->andFilterWhere(['like', 'course.name', $this->name])
             ->andFilterWhere(['like', 'sec', $this->sec])
-            ->andFilterWhere(['like', 'week', $this->week])
             ->andFilterWhere(['like', 'user.nickname', $this->teacher])
             ->andFilterWhere(['like', 'classroom.name', $this->classroomName]);
+
+        if (!empty($this->week)) {
+            $weekNum = explode('-', $this->week);
+            $weekStr = array();
+            foreach ($weekNum as $week) {
+                $weekStr[] = chr($week+64);
+            }
+            $query->andFilterWhere(['like', 'week', implode('-', $weekStr)]);
+        }
 
         // 增加teacher属性正倒排序
         $dataProvider->sort->attributes['teacher'] = [

@@ -39,7 +39,7 @@ class AdminuserSearch extends Adminuser
      */
     public function search($params)
     {
-        $query = Adminuser::find();
+        $query = Adminuser::find()->orderBy('role');
 
         // 此处可添加初始表格限制条件
 

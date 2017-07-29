@@ -11,7 +11,7 @@ namespace common\models;
  * @property integer $adminuser_id
  *
  * @property Adminuser $adminuser
- * @property CourseRelationship[] $courseRelationships
+ * @property Course[] $courses
  * @property User[] $users
  */
 class Classes extends \yii\db\ActiveRecord
@@ -47,7 +47,7 @@ class Classes extends \yii\db\ActiveRecord
             'id' => 'ID',
             'number' => '班级代号',
             'name' => '班级名称',
-            'adminuser_id' => '辅导员ID',
+            'adminuser_id' => '辅导员',
         ];
     }
 
@@ -77,10 +77,13 @@ class Classes extends \yii\db\ActiveRecord
     }
 
     /**
+     * @param bool $includeTeacher
      * @return mixed
      */
-    public static function allClasses()
+    public static function allClasses($includeTeacher = true)
     {
-        return self::find()->select(['name','id'])->indexby('id')->column();
+        $query = self::find()->select(['name','id'])->indexby('id');
+        return $includeTeacher?$query->column():$query->andWhere('id!=1')->column();
     }
+
 }

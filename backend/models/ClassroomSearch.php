@@ -39,7 +39,7 @@ class ClassroomSearch extends Classroom
      */
     public function search($params)
     {
-        $query = Classroom::find();
+        $query = Classroom::find()->orderBy('number');
 
         // 此处可添加初始表格限制条件
 

@@ -1,5 +1,6 @@
 <?php
 
+use common\models\Classes;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
@@ -26,7 +27,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
         <?= $form->field($model, 'password_repeat')->passwordInput() ?>
 
-        <?= $form->field($model,'class_id')->dropDownList(\common\models\Classes::allClasses());?>
+        <?= $form->field($model,'class_id')->dropDownList(Classes::allClasses(),['prompt'=>'请选择']);?>
 
         <div class="form-group">
             <?= Html::submitButton('新增', ['class' =>'btn btn-success']) ?>

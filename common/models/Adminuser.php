@@ -228,15 +228,6 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
     }
 
     /**
-     * 以id为索引的所有管理员数组
-     * @return array
-     */
-    public static function allAdminusers()
-    {
-        return self::find()->select(['nickname','id'])->indexBy('id')->column();
-    }
-
-    /**
      * 所有角色数组
      * @return array
      */
@@ -250,5 +241,13 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
         ];
     }
 
+    /**
+     * 以id为索引的所有管理员数组
+     * @return array
+     */
+    public static function allCounselors()
+    {
+        return self::find()->select(['nickname','id'])->where(['role'=>self::COUNSELOR])->indexBy('id')->column();
+    }
 
 }

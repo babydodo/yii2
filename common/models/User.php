@@ -96,7 +96,8 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function getElectives()
     {
-        return $this->hasMany(Elective::className(), ['user_id' => 'id']);
+        return $this->hasMany(Course::className(), ['id' => 'course_id'])
+                    ->viaTable('elective', ['user_id'=>'id']);
     }
 
     /**

@@ -48,7 +48,7 @@ class UserSearch extends User
      */
     public function search($params)
     {
-        $query = User::find();
+        $query = User::find()->orderBy('class_id');
 
         // 此处可添加初始表格限制条件
 

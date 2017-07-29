@@ -2,14 +2,21 @@
 
 namespace backend\controllers;
 
+use backend\models\CourseForm;
+use common\models\Classes;
+use common\models\Classroom;
+use common\models\User;
 use Yii;
 use common\models\Course;
 use backend\models\CourseSearch;
 use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\Response;
+use yii\widgets\ActiveForm;
 
 /**
  * 课程管理控制器
@@ -51,6 +58,44 @@ class CourseController extends Controller
      */
     public function actionIndex()
     {
+        // 教师课程表
+//        $model = Course::find()->where(['user_id'=>5])->andWhere('FIND_IN_SET(3,week)')->all();
+
+        // 班级课程表
+//        $model = Course::find()->innerJoinWith('classes');
+//        $model->where(['classes.id'=>'2']);
+//        $model->andWhere('FIND_IN_SET(3,week)');
+//        $courses = $model->all();
+//        $courses[0]->user->nickname;
+//        $courses[0]->classroom->name;
+
+        // 学生课表
+//        $model = Course::find()->JoinWith(['classes', 'students']);
+//        $model->where(['user.id'=>'3']);
+//        $model->orWhere(['classes.id'=>'2']);
+//        $model->andWhere('FIND_IN_SET(3,week)');
+//        $courses = $model->asArray()->all();
+
+//        foreach ($courses as $k=>$co) {
+//            $se = explode(',', $co['sec']);
+//            $courses[$k]['sec'] = $se[0];
+//            $courses[$k]['count'] = count($se);
+//            unset($courses[$k]['students']);
+//            unset($courses[$k]['classes']);
+//        }
+
+//        $courses = ArrayHelper::index($courses,function ($element) {
+//            return $element['day'];
+//        },'sec');
+
+//        $data = ArrayHelper::toArray($courses, [
+//            'common\models\Course' => [
+//                'day'=>['id'],
+//            ],
+//        ]);
+
+//        VarDumper::dump($courses);die();
+
         $searchModel = new CourseSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
@@ -66,9 +111,17 @@ class CourseController extends Controller
      */
     public function actionCreate()
     {
-        $model = new Course();
+        $model = new CourseForm();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        // 块赋值验证
+        $load = $model->load(Yii::$app->request->post());
+
+        if (Yii::$app->request->isAjax) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($model);
+        }
+
+        if ($load && $model->saveCourse()) {
             return $this->redirect(['index']);
         } else {
             return $this->render('create', [
@@ -84,10 +137,20 @@ class CourseController extends Controller
      */
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
+        $model = CourseForm::findOne($id);
         $model->formatAttributes();
+        $model->classroom_id = Classroom::findOne($model->classroom_id)->getAttribute('name');
+        $model->classID = $model->getClasses()->column();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        // 块赋值验证
+        $load = $model->load(Yii::$app->request->post());
+
+        if (Yii::$app->request->isAjax) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($model);
+        }
+
+        if ($load && $model->saveCourse($id)) {
             return $this->redirect(['index']);
         } else {
             return $this->render('update', [
@@ -106,6 +169,32 @@ class CourseController extends Controller
         $this->findModel($id)->delete();
 
         return $this->redirect(['index']);
+    }
+
+    /**
+     * 新增课程
+     * @return mixed
+     */
+    public function actionFreeClassroom()
+    {
+        $request = Yii::$app->request;
+        $day = $request->post('day');
+        $secSelected = implode('|', $request->post('sec'));
+        $weekSelected = implode('|', $request->post('week'));
+
+        $query = Course::find();
+//        $query->andFilterWhere(['not', ['course.id'=>$id]]);
+        $query->select(['classroom_id']);
+        $query->andWhere(['day'=>$day]);
+        $query->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(".$secSelected.")[^0-9]+'");
+        $query->andWhere("CONCAT(',',`week`,',') REGEXP '[^0-9]+(".$weekSelected.")[^0-9]+'");
+        $usedClassroom = $query->column();
+
+        $freeClassroom = Classroom::find()->select(['name', 'id'])->where(['not in', 'id', $usedClassroom])->indexBy('id')->column();
+
+
+
+        return implode(',', $freeClassroom);
     }
 
     /**
