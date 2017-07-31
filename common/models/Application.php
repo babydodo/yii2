@@ -18,13 +18,12 @@ namespace common\models;
  * @property integer $type
  * @property string $reason
  * @property integer $status
- * @property string $remark
  *
  * @property Course $course
  * @property User $user
  * @property Classroom $classroom
  * @property User $teacher
- * @property Push[] $pushes
+ * @property Audit[] $audits
  */
 class Application extends \yii\db\ActiveRecord
 {
@@ -45,7 +44,7 @@ class Application extends \yii\db\ActiveRecord
             [['course_id', 'user_id', 'apply_at', 'apply_week', 'adjust_week', 'adjust_day', 'adjust_sec', 'classroom_id', 'teacher_id', 'type', 'reason'], 'required'],
             [['course_id', 'user_id', 'apply_at', 'adjust_day', 'classroom_id', 'teacher_id', 'type', 'status'], 'integer'],
             [['apply_week', 'adjust_week', 'adjust_sec'], 'string', 'max' => 64],
-            [['reason', 'remark'], 'string', 'max' => 255],
+            [['reason'], 'string', 'max' => 255],
             [['course_id'], 'exist', 'skipOnError' => true, 'targetClass' => Course::className(), 'targetAttribute' => ['course_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
             [['classroom_id'], 'exist', 'skipOnError' => true, 'targetClass' => Classroom::className(), 'targetAttribute' => ['classroom_id' => 'id']],
@@ -72,7 +71,6 @@ class Application extends \yii\db\ActiveRecord
             'type' => '类型',
             'reason' => '事由',
             'status' => '状态',
-            'remark' => '备注',
         ];
     }
 
@@ -111,8 +109,9 @@ class Application extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getPushes()
+    public function getAudits()
     {
-        return $this->hasMany(Push::className(), ['application_id' => 'id']);
+        return $this->hasMany(Adminuser::className(), ['id' => 'adminuser_id'])
+                    ->viaTable(Audit::className(), ['application_id' => 'id']);
     }
 }

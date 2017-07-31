@@ -3,8 +3,8 @@ namespace backend\models;
 
 use common\models\Adminuser;
 use common\models\User;
-use Yii;
 use yii\base\Model;
+
 
 /**
  * 重置密码表单
@@ -34,22 +34,19 @@ class ResetpwdForm extends Model
             'password_repeat'=>'确认密码',
     	];
     }
-    
-    
+
+
     /**
      * 更新密码
+     * @param User|Adminuser $user
      * @return bool
      */
-    public function resetPassword($id)
+    public function resetPassword($user)
     {
         if (!$this->validate()) {
             return null;
         }
-        if (Yii::$app->controller->id=='user') {
-            $user = User::findOne($id);
-        } else {
-            $user = Adminuser::findOne($id);
-        }
+
         $user->setPassword($this->password);
         $user->removePasswordResetToken();
         

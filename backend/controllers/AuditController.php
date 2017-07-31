@@ -4,15 +4,15 @@ namespace backend\controllers;
 
 use Yii;
 use common\models\Application;
-use backend\models\ApplicationSearch;
+use yii\data\ActiveDataProvider;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
 /**
- * 停调课申请审核控制器
+ * 申请审核控制器
  */
-class ApplicationController extends Controller
+class AuditController extends Controller
 {
     /**
      * @inheritdoc
@@ -35,11 +35,11 @@ class ApplicationController extends Controller
      */
     public function actionIndex()
     {
-        $searchModel = new ApplicationSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $dataProvider = new ActiveDataProvider([
+            'query' => Application::find(),
+        ]);
 
         return $this->render('index', [
-            'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
     }
@@ -54,6 +54,25 @@ class ApplicationController extends Controller
         return $this->render('view', [
             'model' => $this->findModel($id),
         ]);
+    }
+
+    /**
+     * Updates an existing Application model.
+     * If update is successful, the browser will be redirected to the 'view' page.
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionUpdate($id)
+    {
+        $model = $this->findModel($id);
+
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            return $this->redirect(['view', 'id' => $model->id]);
+        } else {
+            return $this->render('update', [
+                'model' => $model,
+            ]);
+        }
     }
 
     /**

@@ -19,7 +19,7 @@ use yii\base\NotSupportedException;
  * @property string $email
  *
  * @property Classes[] $classes
- * @property Push[] $pushes
+ * @property Audit[] $audits
  */
 class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
 {
@@ -77,9 +77,10 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getPushes()
+    public function getAudits()
     {
-        return $this->hasMany(Push::className(), ['adminuser_id' => 'id']);
+        return $this->hasMany(Application::className(), ['id' => 'application_id'])
+                    ->viaTable(Audit::className(), ['adminuser_id' => 'id']);
     }
 
     /**
@@ -242,8 +243,7 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
     }
 
     /**
-     * 以id为索引的所有管理员数组
-     * @return array
+     * @return array 以id为索引的所有管理员数组
      */
     public static function allCounselors()
     {

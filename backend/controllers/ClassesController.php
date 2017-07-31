@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use common\models\Adminuser;
 use common\models\Course;
 use Yii;
 use common\models\Classes;
@@ -31,7 +32,7 @@ class ClassesController extends Controller
                         'allow' => true,
                         'matchCallback' => function ($rule, $action) {
                             if (!Yii::$app->user->isGuest) {
-                                return Yii::$app->user->identity->role == 1 ? true : false;
+                                return Yii::$app->user->identity->role == Adminuser::DIRECTOR ? true : false;
                             }
                             return false;
                         },

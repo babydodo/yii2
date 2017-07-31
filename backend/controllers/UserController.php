@@ -4,6 +4,7 @@ namespace backend\controllers;
 
 use backend\models\CreateUserForm;
 use backend\models\ResetpwdForm;
+use common\models\Adminuser;
 use Yii;
 use common\models\User;
 use backend\models\UserSearch;
@@ -31,7 +32,7 @@ class UserController extends Controller
                         'allow' => true,
                         'matchCallback' => function ($rule, $action) {
                             if (!Yii::$app->user->isGuest) {
-                                return Yii::$app->user->identity->role == 1 ? true : false;
+                                return Yii::$app->user->identity->role == Adminuser::DIRECTOR ? true : false;
                             }
                             return false;
                         },
@@ -114,7 +115,7 @@ class UserController extends Controller
     {
         $model = new ResetpwdForm();
 
-        if ($model->load(Yii::$app->request->post()) && $model->resetPassword($id)) {
+        if ($model->load(Yii::$app->request->post()) && $model->resetPassword($this->findModel($id))) {
             return $this->redirect(['index']);
         } else {
             return $this->render('resetpwd', [

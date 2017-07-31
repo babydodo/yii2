@@ -1,17 +1,15 @@
 <?php
 namespace frontend\controllers;
 
+use common\models\Course;
+use common\models\User;
 use Yii;
-use yii\base\InvalidParamException;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use frontend\models\LoginForm;
-use frontend\models\PasswordResetRequestForm;
-use frontend\models\ResetPasswordForm;
-use frontend\models\SignupForm;
-use frontend\models\ContactForm;
+use backend\models\ResetpwdForm;
 
 /**
  * Site controller
@@ -66,7 +64,7 @@ class SiteController extends Controller
     }
 
     /**
-     * Displays homepage.
+     * 显示主页
      *
      * @return mixed
      */
@@ -76,7 +74,7 @@ class SiteController extends Controller
     }
 
     /**
-     * Logs in a user.
+     * 登陆
      *
      * @return mixed
      */
@@ -97,7 +95,7 @@ class SiteController extends Controller
     }
 
     /**
-     * Logs out the current user.
+     * 注销当前用户
      *
      * @return mixed
      */
@@ -109,25 +107,43 @@ class SiteController extends Controller
     }
 
     /**
-     * Displays contact page.
-     *
+     * 显示个人详细课表
      * @return mixed
      */
-    public function actionContact()
+    public function actionShowCourses()
     {
-        $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-            if ($model->sendEmail(Yii::$app->params['adminEmail'])) {
-                Yii::$app->session->setFlash('success', 'Thank you for contacting us. We will respond to you as soon as possible.');
-            } else {
-                Yii::$app->session->setFlash('error', 'There was an error sending your message.');
-            }
+        // 筛选周
+        $model = Course::find()->where('FIND_IN_SET(3,week)');
 
-            return $this->refresh();
+        if (Yii::$app->user->identity->class_id == User::TEACHER_CLASS) {
+            // 教师课表
+            $courses = $model->andWhere(['user_id'=>Yii::$app->user->id])->all();
         } else {
-            return $this->render('contact', [
-                'model' => $model,
-            ]);
+            // 学生课表
+            $courses = $model->joinWith(['classes', 'students'])
+                            ->andWhere(['user.id'=>Yii::$app->user->id])
+                            ->orWhere(['classes.id' => Yii::$app->user->identity->class_id])
+                            ->all();
+        }
+
+        return $this->render('showCourses', ['courses' => $courses]);
+    }
+
+    /**
+     * Resets password.
+     *
+     * @return mixed
+     * @throws BadRequestHttpException
+     */
+    public function actionResetpwd()
+    {
+        $model = new ResetpwdForm();
+        $user = User::findOne(Yii::$app->user->id);
+        if ($model->load(Yii::$app->request->post()) && $model->resetPassword($user)) {
+            Yii::$app->session->setFlash('success', '密码修改成功!');
+            return $this->goHome();
+        } else {
+            return $this->render('resetpwd', ['model' => $model]);
         }
     }
 
@@ -141,73 +157,5 @@ class SiteController extends Controller
         return $this->render('about');
     }
 
-    /**
-     * Signs user up.
-     *
-     * @return mixed
-     */
-    public function actionSignup()
-    {
-        $model = new SignupForm();
-        if ($model->load(Yii::$app->request->post())) {
-            if ($user = $model->signup()) {
-                if (Yii::$app->getUser()->login($user)) {
-                    return $this->goHome();
-                }
-            }
-        }
 
-        return $this->render('signup', [
-            'model' => $model,
-        ]);
-    }
-
-    /**
-     * Requests password reset.
-     *
-     * @return mixed
-     */
-    public function actionRequestPasswordReset()
-    {
-        $model = new PasswordResetRequestForm();
-        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-            if ($model->sendEmail()) {
-                Yii::$app->session->setFlash('success', 'Check your email for further instructions.');
-
-                return $this->goHome();
-            } else {
-                Yii::$app->session->setFlash('error', 'Sorry, we are unable to reset password for the provided email address.');
-            }
-        }
-
-        return $this->render('requestPasswordResetToken', [
-            'model' => $model,
-        ]);
-    }
-
-    /**
-     * Resets password.
-     *
-     * @param string $token
-     * @return mixed
-     * @throws BadRequestHttpException
-     */
-    public function actionResetPassword($token)
-    {
-        try {
-            $model = new ResetPasswordForm($token);
-        } catch (InvalidParamException $e) {
-            throw new BadRequestHttpException($e->getMessage());
-        }
-
-        if ($model->load(Yii::$app->request->post()) && $model->validate() && $model->resetPassword()) {
-            Yii::$app->session->setFlash('success', 'New password saved.');
-
-            return $this->goHome();
-        }
-
-        return $this->render('resetPassword', [
-            'model' => $model,
-        ]);
-    }
 }

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: 2017-07-29 17:26:39
+-- Generation Time: 2017-07-31 17:14:30
 -- 服务器版本： 5.7.14
 -- PHP Version: 7.0.10
 
@@ -44,7 +44,7 @@ CREATE TABLE `adminuser` (
 INSERT INTO `adminuser` (`id`, `username`, `nickname`, `role`, `auth_key`, `password_hash`, `password_reset_token`, `email`) VALUES
 (1, '123456', '系主任', 1, '0', '$2y$13$aFeWPhJczbicqSYCXja7n.8xHc1BkjVvrWS8sY33FMnKghsLHQBHe', NULL, NULL),
 (2, '654321', '辅导员7', 4, 'WlXNqyfRKPSQUjh8lRRS7UIcnyXUVCfm', '$2y$13$0Ev2Au7F2TsTC8EIogK0def5RWW2REogFeVaoNcJkRW3VXqVVgxjy', NULL, NULL),
-(4, '111111', '辅导员1', 4, '3t2YCu-NwJ1YS2sF1X4y0ggcxW3Zw7yQ', '$2y$13$Ih7deWcAI0boVYFt6qI04.HZbwz0uElyXuT27e7V5owc0Zq69cs/C', NULL, NULL),
+(4, '111111', '辅导员1', 4, '3t2YCu-NwJ1YS2sF1X4y0ggcxW3Zw7yQ', '$2y$13$O7IQ4EW9vmzFT0e5Ebbi3eE9czPrJ92OLfeMgw3NsPczbkxxR5LKK', NULL, NULL),
 (5, '222222', '实验中心', 3, 'xpLnQ-0-gzoSDsl5YT6-g9MOXFdwJv0W', '$2y$13$aIK3bvU9ktJiKFmlNpmNGeoN8uxrm2FOQP/KaWHSuJrOnifjiT2H6', NULL, NULL),
 (6, '333333', '副院长', 2, '7-xJ1H0gOqqka29RzlR_zCYHwaM2YPsU', '$2y$13$xsSruaHG7E453.m5qkWLduAbXYsN8.geolnCcXhSqq/B0xBSbzxMO', NULL, NULL),
 (7, '123457', '辅导员2', 4, 'FzAOZPForf_b_ZBKdbH7hh6MaPVxGIo3', '$2y$13$yWtu7zp4.ga.GYs5D41oh.Ra1y2piNHruYHYEMb6x0kOYZeiEDvJa', NULL, NULL),
@@ -73,7 +73,20 @@ CREATE TABLE `application` (
   `teacher_id` int(11) NOT NULL,
   `type` tinyint(1) NOT NULL,
   `reason` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `status` tinyint(1) NOT NULL DEFAULT '1',
+  `status` tinyint(1) NOT NULL DEFAULT '1'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- 表的结构 `audit`
+--
+
+CREATE TABLE `audit` (
+  `id` int(11) NOT NULL,
+  `application_id` int(11) NOT NULL,
+  `adminuser_id` int(11) NOT NULL,
+  `status` tinyint(1) DEFAULT '1',
   `remark` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -254,19 +267,6 @@ INSERT INTO `migration` (`version`, `apply_time`) VALUES
 -- --------------------------------------------------------
 
 --
--- 表的结构 `push`
---
-
-CREATE TABLE `push` (
-  `id` int(11) NOT NULL,
-  `application_id` int(11) NOT NULL,
-  `adminuser_id` int(11) NOT NULL,
-  `status` tinyint(1) DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- 表的结构 `user`
 --
 
@@ -287,28 +287,10 @@ CREATE TABLE `user` (
 INSERT INTO `user` (`id`, `username`, `nickname`, `class_id`, `auth_key`, `password_hash`, `password_reset_token`) VALUES
 (3, '1421101', '学生1', 2, 'KbPyTZdFXVciAHikNpCOoIsbZmghw7zD', '$2y$13$.W7sOg9NQcPVgUGCddakXODfD74qUiHY29ic00GoxeZAtu1ZoGpSO', NULL),
 (4, '1421102', '学生2', 2, 'rqCZPEgXnyWnHZXr0xol8PnH_jXZWrNE', '$2y$13$7Zdl.tSuJ.1otv0lyNuV3OLs/sNVnaBpbLFMKQXSDeIh6JkKgOhEy', NULL),
-(5, '616649', '教师1', 1, 'x8PtuDl-EY4W00pnUjT8IHdgyjOqDhzK', '$2y$13$p8SzF3mDNguiptmOHxqcsuEtDM.nr9Ogniuy6aM5Ig7mL0XWNb1c6', NULL),
-(6, '641618', '教师2', 1, 'PpAaCeR-PLaAowzB3BjTaC5xQrxMF2pD', '$2y$13$1jzMKW/pSFZMz/Zi8Xd3Deh11pyJuCldBydU0w.ZHgxioRo.001fi', NULL),
+(5, '1421121', '教师1', 1, 'x8PtuDl-EY4W00pnUjT8IHdgyjOqDhzK', '$2y$13$p8SzF3mDNguiptmOHxqcsuEtDM.nr9Ogniuy6aM5Ig7mL0XWNb1c6', NULL),
+(6, '1421122', '教师2', 1, 'PpAaCeR-PLaAowzB3BjTaC5xQrxMF2pD', '$2y$13$1jzMKW/pSFZMz/Zi8Xd3Deh11pyJuCldBydU0w.ZHgxioRo.001fi', NULL),
 (7, '1421103', '学生3', 2, 'G8LE8boxXDnvAktPrMSY1sXAETLtPiZO', '$2y$13$F.VcqfdP1zKvMObUzMyg6O6cPuMSPdCcewhrGC7RnOOxO0Y79C1rW', NULL),
 (8, '1421104', '学生4', 2, 'jk692oOuS86a8gXGjD-9mNGBJ3TSst5q', '$2y$13$qmIDVbaxOg/knZ2G3GXUCelA4A9ttoMyv/M6xzG5AFPDvvCkKVUjm', NULL);
-
--- --------------------------------------------------------
-
---
--- 表的结构 `user_bak`
---
-
-CREATE TABLE `user_bak` (
-  `id` int(11) NOT NULL,
-  `username` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `auth_key` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
-  `password_hash` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `password_reset_token` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `status` smallint(6) NOT NULL DEFAULT '10',
-  `created_at` int(11) NOT NULL,
-  `updated_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- Indexes for dumped tables
@@ -331,6 +313,14 @@ ALTER TABLE `application`
   ADD KEY `user_id` (`user_id`),
   ADD KEY `classroom_id` (`classroom_id`),
   ADD KEY `teacher_id` (`teacher_id`);
+
+--
+-- Indexes for table `audit`
+--
+ALTER TABLE `audit`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `application_id` (`application_id`),
+  ADD KEY `adminuser_id` (`adminuser_id`);
 
 --
 -- Indexes for table `classes`
@@ -380,14 +370,6 @@ ALTER TABLE `migration`
   ADD PRIMARY KEY (`version`);
 
 --
--- Indexes for table `push`
---
-ALTER TABLE `push`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `application_id` (`application_id`),
-  ADD KEY `adminuser_id` (`adminuser_id`);
-
---
 -- Indexes for table `user`
 --
 ALTER TABLE `user`
@@ -395,15 +377,6 @@ ALTER TABLE `user`
   ADD UNIQUE KEY `username` (`username`),
   ADD UNIQUE KEY `password_reset_token` (`password_reset_token`),
   ADD KEY `class_id` (`class_id`);
-
---
--- Indexes for table `user_bak`
---
-ALTER TABLE `user_bak`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `username` (`username`),
-  ADD UNIQUE KEY `email` (`email`),
-  ADD UNIQUE KEY `password_reset_token` (`password_reset_token`);
 
 --
 -- 在导出的表使用AUTO_INCREMENT
@@ -418,6 +391,11 @@ ALTER TABLE `adminuser`
 -- 使用表AUTO_INCREMENT `application`
 --
 ALTER TABLE `application`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- 使用表AUTO_INCREMENT `audit`
+--
+ALTER TABLE `audit`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- 使用表AUTO_INCREMENT `classes`
@@ -445,20 +423,10 @@ ALTER TABLE `course_relationship`
 ALTER TABLE `elective`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 --
--- 使用表AUTO_INCREMENT `push`
---
-ALTER TABLE `push`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
---
 -- 使用表AUTO_INCREMENT `user`
 --
 ALTER TABLE `user`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
---
--- 使用表AUTO_INCREMENT `user_bak`
---
-ALTER TABLE `user_bak`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- 限制导出的表
 --
@@ -471,6 +439,13 @@ ALTER TABLE `application`
   ADD CONSTRAINT `application_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `application_ibfk_3` FOREIGN KEY (`classroom_id`) REFERENCES `classroom` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `application_ibfk_4` FOREIGN KEY (`teacher_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- 限制表 `audit`
+--
+ALTER TABLE `audit`
+  ADD CONSTRAINT `audit_ibfk_1` FOREIGN KEY (`application_id`) REFERENCES `application` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `audit_ibfk_2` FOREIGN KEY (`adminuser_id`) REFERENCES `adminuser` (`id`) ON UPDATE CASCADE;
 
 --
 -- 限制表 `classes`
@@ -498,13 +473,6 @@ ALTER TABLE `course_relationship`
 ALTER TABLE `elective`
   ADD CONSTRAINT `elective_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `elective_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `course` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- 限制表 `push`
---
-ALTER TABLE `push`
-  ADD CONSTRAINT `push_ibfk_1` FOREIGN KEY (`application_id`) REFERENCES `application` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `push_ibfk_2` FOREIGN KEY (`adminuser_id`) REFERENCES `adminuser` (`id`) ON UPDATE CASCADE;
 
 --
 -- 限制表 `user`

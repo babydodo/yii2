@@ -25,8 +25,7 @@ use yii\web\IdentityInterface;
  */
 class User extends ActiveRecord implements IdentityInterface
 {
-    // const STATUS_DELETED = 0;
-    // const STATUS_ACTIVE = 10;
+    const TEACHER_CLASS = 1;
 
     /**
      * @inheritdoc
@@ -240,6 +239,6 @@ class User extends ActiveRecord implements IdentityInterface
 
     public static function allTeachers()
     {
-        return static::find()->select(['nickname','id'])->where(['class_id'=>1])->indexBy('id')->column();
+        return static::find()->select(['nickname','id'])->where(['class_id'=>self::TEACHER_CLASS])->indexBy('id')->column();
     }
 }

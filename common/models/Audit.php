@@ -2,25 +2,28 @@
 
 namespace common\models;
 
+use Yii;
+
 /**
- * push表模型类
+ * This is the model class for table "audit".
  *
  * @property integer $id
  * @property integer $application_id
  * @property integer $adminuser_id
  * @property integer $status
+ * @property string $remark
  *
  * @property Application $application
  * @property Adminuser $adminuser
  */
-class Push extends \yii\db\ActiveRecord
+class Audit extends \yii\db\ActiveRecord
 {
     /**
      * @inheritdoc
      */
     public static function tableName()
     {
-        return 'push';
+        return 'audit';
     }
 
     /**
@@ -31,6 +34,7 @@ class Push extends \yii\db\ActiveRecord
         return [
             [['application_id', 'adminuser_id'], 'required'],
             [['application_id', 'adminuser_id', 'status'], 'integer'],
+            [['remark'], 'string', 'max' => 255],
             [['application_id'], 'exist', 'skipOnError' => true, 'targetClass' => Application::className(), 'targetAttribute' => ['application_id' => 'id']],
             [['adminuser_id'], 'exist', 'skipOnError' => true, 'targetClass' => Adminuser::className(), 'targetAttribute' => ['adminuser_id' => 'id']],
         ];
@@ -44,8 +48,9 @@ class Push extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'application_id' => '申请ID',
-            'adminuser_id' => '审批人ID',
+            'adminuser_id' => '审核人ID',
             'status' => '状态',
+            'remark' => '备注',
         ];
     }
 

@@ -4,6 +4,7 @@
 /* @var $content string */
 
 use backend\assets\AppAsset;
+use common\models\Adminuser;
 use yii\helpers\Html;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
@@ -29,7 +30,7 @@ AppAsset::register($this);
 <div class="wrap">
     <?php
     NavBar::begin([
-        'brandLabel' => '停调课管理系统',
+        'brandLabel' => '停调课管理系统-后台',
         'brandUrl' => Yii::$app->homeUrl,
         'options' => [
             'class' => 'navbar-inverse navbar-fixed-top',
@@ -37,7 +38,7 @@ AppAsset::register($this);
     ]);
 
     // 系主任显示菜单
-    if (!Yii::$app->user->isGuest && Yii::$app->user->identity->role == 1) {
+    if (!Yii::$app->user->isGuest && Yii::$app->user->identity->role == Adminuser::DIRECTOR) {
         $menuItems = [
             ['label' => '管理员管理', 'url' => ['/adminuser/index']],
             ['label' => '用户管理', 'url' => ['/user/index']],
@@ -47,17 +48,21 @@ AppAsset::register($this);
         ];
     }
 
-    // 其余角色显示菜单
-    if (!Yii::$app->user->isGuest && in_array(Yii::$app->user->identity->role, [2,3,4], true) ) {
-        $menuItems = [
-            ['label' => '申请审核', 'url' => ['/application/index']],
-        ];
+    // 其余管理员角色显示菜单
+    if (!Yii::$app->user->isGuest) {
+        $otherRoles = [Adminuser::DEAN, Adminuser::LABORATORY, Adminuser::COUNSELOR];
+        if (in_array(Yii::$app->user->identity->role, $otherRoles, true)) {
+            $menuItems = [
+                ['label' => '申请审核', 'url' => ['/application/index']],
+            ];
+        }
     }
 
-    // 登陆与注销项
+    // 修改密码项 与 登陆/注销 项
     if (Yii::$app->user->isGuest) {
         $menuItems[] = ['label' => '登陆', 'url' => ['/site/login']];
     } else {
+        $menuItems[] = ['label' => '修改密码', 'url' => ['/site/resetpwd']];
         $menuItems[] = '<li>'
             . Html::beginForm(['/site/logout'], 'post')
             . Html::submitButton(
@@ -67,6 +72,7 @@ AppAsset::register($this);
             . Html::endForm()
             . '</li>';
     }
+
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => $menuItems,

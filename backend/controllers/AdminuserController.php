@@ -16,8 +16,6 @@ use yii\filters\VerbFilter;
 use Yii\web\Response;
 use yii\widgets\ActiveForm;
 
-//use yii\widgets\ActiveForm;
-
 /**
  * Adminuser模型控制器(实现增删查改动作)
  */
@@ -36,7 +34,7 @@ class AdminuserController extends Controller
                         'allow' => true,
                         'matchCallback' => function ($rule, $action) {
                             if (!Yii::$app->user->isGuest) {
-                                return Yii::$app->user->identity->role == 1 ? true : false;
+                                return Yii::$app->user->identity->role == Adminuser::DIRECTOR ? true : false;
                             }
                             return false;
                         },
@@ -126,12 +124,14 @@ class AdminuserController extends Controller
 
     /**
      * 更新用户密码
+     * @param $id
+     * @return string|Response
      */
     public function actionResetpwd($id)
     {
         $model = new ResetpwdForm();
 
-        if ($model->load(Yii::$app->request->post()) && $model->resetPassword($id)) {
+        if ($model->load(Yii::$app->request->post()) && $model->resetPassword($this->findModel($id))) {
             return $this->redirect(['index']);
         } else {
             return $this->render('resetpwd', ['model' => $model]);

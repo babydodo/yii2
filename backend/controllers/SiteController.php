@@ -1,6 +1,8 @@
 <?php
 namespace backend\controllers;
 
+use backend\models\ResetpwdForm;
+use common\models\Adminuser;
 use Yii;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
@@ -26,7 +28,7 @@ class SiteController extends Controller
                         'allow' => true,
                     ],
                     [
-                        'actions' => ['logout', 'index'],
+                        'actions' => ['index', 'resetpwd', 'logout'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -61,6 +63,22 @@ class SiteController extends Controller
     public function actionIndex()
     {
         return $this->render('index');
+    }
+
+    /**
+     * 修改密码
+     */
+    public function actionResetpwd()
+    {
+        $model = new ResetpwdForm();
+
+        if ($model->load(Yii::$app->request->post()) && $model->resetPassword(Adminuser::findOne(Yii::$app->user->id))) {
+            return $this->redirect(['index']);
+        } else {
+            return $this->render('resetpwd', [
+                'model' => $model,
+            ]);
+        }
     }
 
     /**

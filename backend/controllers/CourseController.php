@@ -3,6 +3,7 @@
 namespace backend\controllers;
 
 use backend\models\CourseForm;
+use common\models\Adminuser;
 use common\models\Classes;
 use common\models\Classroom;
 use common\models\User;
@@ -36,7 +37,7 @@ class CourseController extends Controller
                         'allow' => true,
                         'matchCallback' => function ($rule, $action) {
                             if (!Yii::$app->user->isGuest) {
-                                return Yii::$app->user->identity->role == 1 ? true : false;
+                                return Yii::$app->user->identity->role == Adminuser::DIRECTOR ? true : false;
                             }
                             return false;
                         },
@@ -66,15 +67,13 @@ class CourseController extends Controller
 //        $model->where(['classes.id'=>'2']);
 //        $model->andWhere('FIND_IN_SET(3,week)');
 //        $courses = $model->all();
-//        $courses[0]->user->nickname;
-//        $courses[0]->classroom->name;
 
         // 学生课表
 //        $model = Course::find()->JoinWith(['classes', 'students']);
 //        $model->where(['user.id'=>'3']);
 //        $model->orWhere(['classes.id'=>'2']);
 //        $model->andWhere('FIND_IN_SET(3,week)');
-//        $courses = $model->asArray()->all();
+//        $courses = $model->all();
 
 //        foreach ($courses as $k=>$co) {
 //            $se = explode(',', $co['sec']);
