@@ -11,8 +11,6 @@ $this->params['breadcrumbs'][] = '更新';
 ?>
 <div class="classes-update">
 
-    <h1><?= Html::encode($this->title) ?></h1>
-
     <?= $this->render('_form', [
         'model' => $model,
     ]) ?>

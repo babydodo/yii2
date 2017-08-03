@@ -4,6 +4,7 @@ namespace backend\models;
 
 use common\models\Course;
 use common\models\CourseRelationship;
+use Yii;
 
 /**
  * 课程新增与修改表单模型类
@@ -81,14 +82,10 @@ class CourseForm extends Course
      * 保存课程及班级关联信息
      * @param null $id
      * @return bool
+     * @throws \Exception
      */
     public function saveCourse($id = null)
     {
-        // 验证输入数据
-        if (!$this->validate()) {
-            return null;
-        }
-
         // 判断更新还是新增
         if ($id){
             $course = Course::findOne($id);
@@ -104,20 +101,31 @@ class CourseForm extends Course
         $course->week = $this->week;
         $course->classroom_id = $this->classroom_id;
 
-        if ($course->save(false) ? true : false) {
-            // 根据course的id删除course_relationship表建立的关系
-            $course_id = $course->getAttribute('id');
-            CourseRelationship::deleteAll(['course_id'=>$course_id]);
-            // 根据前台传入的班级向course_relationship表写入关联数据
-            if (!empty($this->classID)) {
-                foreach ($this->classID as $class_id) {
-                    $relation = new CourseRelationship();
-                    $relation->class_id = $class_id;
-                    $relation->course_id = $course_id;
-                    $relation->save();
+        if ($this->validate()) {
+            // 开启事务
+            $transaction = Yii::$app->db->beginTransaction();
+            try {
+                $course->save();
+                $course_id = $course->getAttribute('id');
+                // 根据course的id删除course_relationship表建立的关系
+                CourseRelationship::deleteAll(['course_id'=>$course_id]);
+                // 根据前台传入的班级向course_relationship表写入关联数据
+                if (!empty($this->classID)) {
+                    foreach ($this->classID as $class_id) {
+                        $relation = new CourseRelationship();
+                        $relation->class_id = $class_id;
+                        $relation->course_id = $course_id;
+                        $relation->save();
+                    }
                 }
+                // 提交事务
+                $transaction->commit();
+                return true;
+            } catch (\Exception $e) {
+                // 回滚
+                $transaction->rollback();
+                throw $e;
             }
-            return true;
         } else{
             return false;
         }

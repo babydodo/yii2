@@ -3,10 +3,8 @@
 use common\models\Classes;
 use common\models\Course;
 use common\models\User;
-use yii\bootstrap\Modal;
+use yii\bootstrap\ActiveForm;
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-
 use yii\helpers\Url;
 
 /* @var $this yii\web\View */
@@ -32,6 +30,7 @@ $js = <<<JS
             }
         });
         
+        $('#modal_id').find('.modal-title').html('空闲教室');
         $.post('{$requestUrl}', {day:$("#courseform-day").val(), sec:secCheckBox, week:weekCheckBox},
             function (data) {
                 $('#modal_id').find('.modal-body').html(data);
@@ -44,7 +43,7 @@ $this->registerJs($js);
 
 <div class="course-form">
 
-    <?php $form = ActiveForm::begin(['enableAjaxValidation' => true]); ?>
+    <?php $form = ActiveForm::begin(['enableAjaxValidation' => true, 'layout' => 'horizontal']); ?>
 
     <?= $form->field($model, 'number')->textInput() ?>
 
@@ -54,35 +53,33 @@ $this->registerJs($js);
 
     <?= $form->field($model, 'day')->dropDownList(Course::allDays(),['prompt'=>'请选择时间']) ?>
 
-    <?= $form->field($model, 'sec')->checkboxList(Course::allSections()) ?>
+    <?= $form->field($model, 'sec')->checkboxList(Course::allSections(), ['class'=>'form-inline']) ?>
 
-    <?= $form->field($model, 'week')->checkboxList(Course::allWeeks()) ?>
+    <?= $form->field($model, 'week')->checkboxList(Course::allWeeks(), ['class'=>'form-inline']) ?>
+
+    <div class="form-group">
+        <div class="col-sm-offset-3 col-sm-6">
+            <?= Html::a('显示空闲教室', '#', [
+                    'id' => 'btn_id',
+                    'data-toggle' => 'modal',
+                    'data-target' => '#modal_id',
+                    'class' => 'btn btn-default',
+            ]) ?>
+        </div>
+    </div>
 
     <?= $form->field($model, 'classroom_id')->textInput() ?>
 
-    <?= $form->field($model, 'classID')->checkboxList(Classes::allClasses(false)) ?>
-
-    <?= Html::a('创建', '#', [
-            'id' => 'btn_id',
-            'data-toggle' => 'modal',
-            'data-target' => '#modal_id',
-            'class' => 'btn btn-success',
-    ]) ?>
+    <?= $form->field($model, 'classID')->checkboxList(Classes::allClasses(false), ['class'=>'form-inline']) ?>
 
     <div class="form-group">
-        <?= Html::submitButton($model->isNewRecord ? '新增' : '修改',
-            ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary'])
-        ?>
+        <div class="col-sm-offset-3 col-sm-6">
+            <?= Html::submitButton($model->isNewRecord ? '新增' : '修改',
+                ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary'])
+            ?>
+        </div>
     </div>
 
     <?php ActiveForm::end(); ?>
-
-    <?php Modal::begin([
-                'id' => 'modal_id',
-                'header' => '<h4 class="modal-title">空闲教室</h4>',
-                'footer' => '<a href="#" class="btn btn-primary" data-dismiss="modal">确定</a>',
-    ]); ?>
-
-    <?php Modal::end(); ?>
     
 </div>

@@ -26,7 +26,7 @@ class CoursesWidget extends Widget
         for ($i=1;$i<=12;$i++) {
             for ($j=0;$j<=7;$j++) {
                 if ($j==0) {
-                    $this->tbody[$i][$j] = '<td>'.$i.'</td>';
+                    $this->tbody[$i][$j] = '<td style="vertical-align: middle;text-align: center;">'.$i.'</td>';
                 } else {
                     $this->tbody[$i][$j] = '<td></td>';
                 }
@@ -40,11 +40,33 @@ class CoursesWidget extends Widget
      */
     public function run()
     {
-        $thead = '<div class="table-responsive">'.
-                '<table class="table table-bordered">'.
-                '<thead><tr>'.
-                '<th>#</th><th>周一</th><th>周二</th><th>周三</th><th>周四</th><th>周五</th><th>周六</th><th>周日</th>'.
-                '</tr></thead>';
+        $thead = <<<EOT
+        <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+                <colgroup span="1"><col/></colgroup>
+                <colgroup span="7">
+                    <col width="14%" />
+                    <col width="14%" />
+                    <col width="14%" />
+                    <col width="14%" />
+                    <col width="14%" />
+                    <col width="14%" />
+                    <col width="14%" />
+                </colgroup>
+                
+                <tr class="text-center">
+                    <th class="text-center">#</th>
+                    <th class="text-center">周一</th>
+                    <th class="text-center">周二</th>
+                    <th class="text-center">周三</th>
+                    <th class="text-center">周四</th>
+                    <th class="text-center">周五</th>
+                    <th class="text-center">周六</th>
+                    <th class="text-center">周日</th>
+                </tr>
+            </thead>
+EOT;
 
         foreach ($this->courses as $course) {
             // 格式化sec属性
@@ -55,7 +77,7 @@ class CoursesWidget extends Widget
                     if ($key == 0) {
                         $teacher = $course->user->getAttribute('nickname');
                         $classroom = $course->classroom->getAttribute('name');
-                        $this->tbody[$value][$course->day] = '<td rowspan="'.count($item).'">'.$course->name.$classroom.$teacher.'</td>';
+                        $this->tbody[$value][$course->day] = '<td style="vertical-align:middle" class="info" rowspan="'.count($item).'">'.$course->name.$classroom.$teacher.'</td>';
                     } else {
                         $this->tbody[$value][$course->day] = null;
                     }

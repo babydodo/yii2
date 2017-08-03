@@ -1,7 +1,6 @@
 <?php
 
 use common\widgets\CoursesWidget;
-use yii\helpers\Html;
 
 /* @var $this yii\web\View */
 /* @var $courses common\models\Course */
@@ -14,8 +13,8 @@ $this->params['breadcrumbs'][] = $this->title;
 <div class="classes-show-courses">
 
 		<div class="classes-courses">
-		
-		    <?= CoursesWidget::widget(['courses'=>$courses]) ?>
+
+            <?= CoursesWidget::widget(['courses'=>$courses]) ?>
 		
 		</div>
 

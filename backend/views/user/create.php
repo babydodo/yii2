@@ -1,8 +1,9 @@
 <?php
 
 use common\models\Classes;
+use yii\bootstrap\ActiveForm;
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $model common\models\User */
@@ -13,11 +14,13 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="user-create">
 
-    <h1><?= Html::encode($this->title) ?></h1>
-
     <div class="user-form">
 
-        <?php $form = ActiveForm::begin(); ?>
+        <?php $form = ActiveForm::begin([
+            'id' => 'create-form',
+            'validationUrl' => Url::toRoute(['validate-save']),
+            'layout' => 'horizontal',
+        ]); ?>
 
         <?= $form->field($model, 'username', ['enableAjaxValidation' => true])->textInput(['maxlength' => true]) ?>
 
@@ -30,7 +33,10 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= $form->field($model,'class_id')->dropDownList(Classes::allClasses(),['prompt'=>'请选择']);?>
 
         <div class="form-group">
-            <?= Html::submitButton('新增', ['class' =>'btn btn-success']) ?>
+            <div class="col-sm-offset-3 col-sm-6">
+                <?= Html::submitButton('新增', ['class' =>'btn btn-success']) ?>
+                <?= Html::a('取消', '#', ['class' =>'btn btn-danger', 'data-dismiss'=>'modal']) ?>
+            </div>
         </div>
 
         <?php ActiveForm::end(); ?>

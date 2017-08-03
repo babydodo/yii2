@@ -3,6 +3,7 @@
 namespace common\models;
 
 use Yii;
+use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
 use yii\base\NotSupportedException;
 
@@ -21,7 +22,7 @@ use yii\base\NotSupportedException;
  * @property Classes[] $classes
  * @property Audit[] $audits
  */
-class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
+class Adminuser extends ActiveRecord implements IdentityInterface
 {
     const DIRECTOR = 1;
     const DEAN = 2;
@@ -44,7 +45,7 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
         return [
             [['username', 'nickname', 'role'], 'required'],
             [['username', 'email'], 'string', 'max' => 255],
-            ['username', 'unique'],
+            ['username', 'unique', 'targetClass' => '\common\models\Adminuser', 'message' => '职工号已存在！'],
             ['nickname', 'string', 'max' => 128],
             [['role'], 'integer'],
             ['email', 'email'],
@@ -113,7 +114,7 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
     /**
      * 根据password_reset_token找到对应记录
      *
-     * @param string $token password reset token
+     * @param string $token 密码重置令牌
      * @return static|null
      */
     public static function findByPasswordResetToken($token)
@@ -190,7 +191,7 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Generates "remember me" authentication key
+     * 生成自动登录令牌
      */
     public function generateAuthKey()
     {
@@ -214,14 +215,14 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
     }
 
     /**
-     * @return null|string
+     * @return null|string 对应角色的中文字符串
      */
     public function getRoleStr()
     {
         switch ($this->role) {
             case self::DIRECTOR : $role = '系主任'; break;
-            case self::DEAN : $role = '副院长'; break;
-            case self::LABORATORY : $role = '实验中心'; break;
+            case self::DEAN : $role = '教学副院长'; break;
+            case self::LABORATORY : $role = '实验中心主任'; break;
             case self::COUNSELOR : $role = '辅导员'; break;
             default : $role = NULL;
         }
@@ -229,21 +230,20 @@ class Adminuser extends \yii\db\ActiveRecord implements IdentityInterface
     }
 
     /**
-     * 所有角色数组
-     * @return array
+     * @return array 所有角色数组
      */
     public static function allRoles()
     {
         return [
             self::DIRECTOR => '系主任',
-            self::DEAN => '副院长',
-            self::LABORATORY => '实验中心',
+            self::DEAN => '教学副院长',
+            self::LABORATORY => '实验中心主任',
             self::COUNSELOR => '辅导员',
         ];
     }
 
     /**
-     * @return array 以id为索引的所有管理员数组
+     * @return array 以id为索引的所有辅导员角色数组
      */
     public static function allCounselors()
     {

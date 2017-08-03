@@ -9,7 +9,6 @@ use common\models\Adminuser;
 use backend\models\AdminuserSearch;
 use yii\db\IntegrityException;
 use yii\filters\AccessControl;
-use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -17,7 +16,7 @@ use Yii\web\Response;
 use yii\widgets\ActiveForm;
 
 /**
- * Adminuser模型控制器(实现增删查改动作)
+ * 管理员管理模块控制器
  */
 class AdminuserController extends Controller
 {
@@ -84,19 +83,13 @@ class AdminuserController extends Controller
     public function actionCreate()
     {
         $model = new CreateAdminuserForm();
-        // 块赋值验证
-        $load = $model->load(Yii::$app->request->post());
-
-        if (Yii::$app->request->isAjax) {
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            return ActiveForm::validate($model);
-        }
-
-        if($load && $model->createAdminuser()) {
+        // 块赋值验证与保存
+        if($model->load(Yii::$app->request->post()) && $model->createAdminuser()) {
+            Yii::$app->getSession()->setFlash('success', '新增管理员成功');
             return $this->redirect(['index']);
         }
         
-        return $this->render('create', ['model' => $model]);
+        return $this->renderAjax('create', ['model' => $model]);
     }
 
     /**
@@ -107,35 +100,55 @@ class AdminuserController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        // 块赋值验证
-        $load = $model->load(Yii::$app->request->post());
-
-        if (Yii::$app->request->isAjax) {
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            return ActiveForm::validate($model);
-        }
-
-        if ($load && $model->save()) {
+        // 块赋值验证与保存
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            Yii::$app->getSession()->setFlash('success', '修改资料成功');
             return $this->redirect(['index']);
         } else {
-            return $this->render('update', ['model' => $model]);
+            return $this->renderAjax('update', ['model' => $model]);
         }
+    }
+
+    /**
+     * 验证新增与修改表单
+     * @param null $id
+     * @return array
+     */
+    public function actionValidateSave($id = null)
+    {
+        $model = $id === null ? new CreateAdminuserForm() : $this->findModel($id);
+        $model->load(Yii::$app->request->post());
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return ActiveForm::validate($model);
     }
 
     /**
      * 更新用户密码
      * @param $id
-     * @return string|Response
+     * @return mixed
      */
     public function actionResetpwd($id)
     {
         $model = new ResetpwdForm();
 
         if ($model->load(Yii::$app->request->post()) && $model->resetPassword($this->findModel($id))) {
-            return $this->redirect(['index']);
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return true;
         } else {
-            return $this->render('resetpwd', ['model' => $model]);
+            return $this->renderAjax('resetpwd', ['model' => $model]);
         }
+    }
+
+    /**
+     * 验证重置密码表单
+     * @return array
+     */
+    public function actionValidateResetpwd()
+    {
+        $model = new ResetpwdForm();
+        $model->load(Yii::$app->request->post());
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return ActiveForm::validate($model);
     }
 
     /**

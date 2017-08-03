@@ -11,10 +11,11 @@ use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\Response;
 use yii\widgets\ActiveForm;
 
 /**
- * 教室管理控制器
+ * 教室管理模块控制器
  */
 class ClassroomController extends Controller
 {
@@ -75,26 +76,18 @@ class ClassroomController extends Controller
     }
 
     /**
-     * 新增教室
+     * 新增一个教室
      * @return mixed
      */
     public function actionCreate()
     {
         $model = new Classroom();
 
-        if (Yii::$app->request->isAjax) {
-            // 块赋值验证
-            $model->load($_POST);
-            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
-            return  ActiveForm::validate($model);
-        }
-
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            Yii::$app->getSession()->setFlash('success', '新增教室成功');
             return $this->redirect(['index']);
         } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
+            return $this->renderAjax('create', ['model' => $model]);
         }
     }
 
@@ -107,20 +100,25 @@ class ClassroomController extends Controller
     {
         $model = $this->findModel($id);
 
-        if (Yii::$app->request->isAjax) {
-            // 块赋值验证
-            $model->load($_POST);
-            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
-            return  ActiveForm::validate($model);
-        }
-
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            Yii::$app->getSession()->setFlash('success', '修改资料成功');
             return $this->redirect(['index']);
         } else {
-            return $this->render('update', [
-                'model' => $model,
-            ]);
+            return $this->renderAjax('update', ['model' => $model]);
         }
+    }
+
+    /**
+     * 验证新增与修改表单
+     * @param null $id
+     * @return array
+     */
+    public function actionValidateSave($id = null)
+    {
+        $model = $id === null ? new Classroom() : $this->findModel($id);
+        $model->load(Yii::$app->request->post());
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return ActiveForm::validate($model);
     }
 
     /**

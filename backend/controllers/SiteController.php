@@ -4,13 +4,15 @@ namespace backend\controllers;
 use backend\models\ResetpwdForm;
 use common\models\Adminuser;
 use Yii;
+use yii\bootstrap\ActiveForm;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use backend\models\LoginForm;
+use yii\web\Response;
 
 /**
- * Site controller
+ * 网站控制器
  */
 class SiteController extends Controller
 {
@@ -56,8 +58,7 @@ class SiteController extends Controller
     }
 
     /**
-     * Displays homepage.
-     *
+     * 显示首页
      * @return string
      */
     public function actionIndex()
@@ -73,17 +74,27 @@ class SiteController extends Controller
         $model = new ResetpwdForm();
 
         if ($model->load(Yii::$app->request->post()) && $model->resetPassword(Adminuser::findOne(Yii::$app->user->id))) {
-            return $this->redirect(['index']);
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return true;
         } else {
-            return $this->render('resetpwd', [
-                'model' => $model,
-            ]);
+            return $this->renderAjax('resetpwd', ['model' => $model]);
         }
     }
 
     /**
-     * Login action.
-     *
+     * 验证重置密码表单
+     * @return array
+     */
+    public function actionValidateResetpwd()
+    {
+        $model = new ResetpwdForm();
+        $model->load(Yii::$app->request->post());
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return ActiveForm::validate($model);
+    }
+
+    /**
+     * 登陆
      * @return string
      */
     public function actionLogin()
@@ -103,8 +114,7 @@ class SiteController extends Controller
     }
 
     /**
-     * Logout action.
-     *
+     * 注销
      * @return string
      */
     public function actionLogout()

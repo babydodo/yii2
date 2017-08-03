@@ -43,8 +43,6 @@ $this->params['breadcrumbs'][] = $this->title;
 
         <?= $form->field($model, 'status')->textInput() ?>
 
-        <?= $form->field($model, 'remark')->textInput(['maxlength' => true]) ?>
-
         <div class="form-group">
             <?= Html::submitButton('提交', ['class' => 'btn btn-success']) ?>
         </div>

@@ -8,14 +8,14 @@ use Yii;
 use common\models\Classes;
 use backend\models\ClassesSearch;
 use yii\filters\AccessControl;
-use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\Response;
 use yii\widgets\ActiveForm;
 
 /**
- * 班级管理控制器
+ * 班级管理模块控制器
  */
 class ClassesController extends Controller
 {
@@ -83,19 +83,11 @@ class ClassesController extends Controller
     {
         $model = new Classes();
 
-        if (Yii::$app->request->isAjax) {
-            // 块赋值验证
-            $model->load($_POST);
-            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
-            return  ActiveForm::validate($model);
-        }
-
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            Yii::$app->getSession()->setFlash('success', '新增班级成功');
             return $this->redirect(['index']);
         } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
+            return $this->renderAjax('create', ['model' => $model]);
         }
     }
 
@@ -108,33 +100,39 @@ class ClassesController extends Controller
     {
         $model = $this->findModel($id);
 
-        if (Yii::$app->request->isAjax) {
-            // 块赋值验证
-            $model->load($_POST);
-            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
-            return  ActiveForm::validate($model);
-        }
-
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            Yii::$app->getSession()->setFlash('success', '修改资料成功');
             return $this->redirect(['index']);
         } else {
-            return $this->render('update', [
-                'model' => $model,
-            ]);
+            return $this->renderAjax('update', ['model' => $model]);
         }
+    }
+
+    /**
+     * 验证新增与修改表单
+     * @param null $id
+     * @return array
+     */
+    public function actionValidateSave($id = null)
+    {
+        $model = $id === null ? new Classes() : $this->findModel($id);
+        $model->load(Yii::$app->request->post());
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return ActiveForm::validate($model);
     }
 
     /**
      * 显示班级详细课表
      * @param integer $id
+     * @param int $week
      * @return mixed
      */
-    public function actionShowCourses($id)
+    public function actionShowCourses($id, $week=1)
     {
         // 班级课程表
         $model = Course::find()->innerJoinWith('classes');
         $model->where(['classes.id'=>$id]);
-        $model->andWhere('FIND_IN_SET(3,week)');
+        $model->andWhere('FIND_IN_SET('.$week.',week)');
         $courses = $model->all();
 
         return $this->renderAjax('showCourses', ['courses' => $courses]);
@@ -150,8 +148,6 @@ class ClassesController extends Controller
         $this->findModel($id)->delete();
         return $this->redirect(['index']);
     }
-
-
 
     /**
      * 根据id找到对应班级记录

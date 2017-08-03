@@ -83,7 +83,7 @@ class Classes extends \yii\db\ActiveRecord
     public static function allClasses($includeTeacher = true)
     {
         $query = self::find()->select(['name','id'])->indexby('id');
-        return $includeTeacher?$query->column():$query->andWhere('id!=1')->column();
+        return $includeTeacher?$query->column():$query->andWhere(['not', ['id'=>User::TEACHER_CLASS]])->column();
     }
 
 }

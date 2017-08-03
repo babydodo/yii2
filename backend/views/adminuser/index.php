@@ -1,7 +1,12 @@
 <?php
 
+use common\models\Adminuser;
+use yii\bootstrap\Alert;
+use yii\bootstrap\Modal;
 use yii\helpers\Html;
 use yii\grid\GridView;
+use yii\helpers\Url;
+use yii\widgets\Pjax;
 
 /* @var $this yii\web\View */
 /* @var $searchModel backend\models\AdminuserSearch */
@@ -10,13 +15,53 @@ use yii\grid\GridView;
 $this->title = '管理员';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
+
+<?php
+// 自定义js
+$createUrl = Url::toRoute('create');
+$updateUrl = Url::toRoute('update');
+$resetpwdUrl = Url::toRoute('resetpwd');
+$js = <<<JS
+    $('#create').on('click',function () {
+        $('#modal_id').find('.modal-title').html('新增管理员');
+        $.get('{$createUrl}', {}, function (data) {
+                $('#modal_id').find('.modal-body').html(data);
+            }
+        );
+    });
+
+    $('.update').on('click',function () {
+        $('#modal_id').find('.modal-title').html('修改资料');
+        $.get('{$updateUrl}', { id:$(this).closest('tr').data('key') },
+            function (data) {
+                $('#modal_id').find('.modal-body').html(data);
+            }
+        );
+    });
+
+    $('.resetpwd').on('click',function () {
+        $('#modal_id').find('.modal-title').html('重置密码');
+        $.get('{$resetpwdUrl}', { id:$(this).closest('tr').data('key') },
+            function (data) {
+                $('#modal_id').find('.modal-body').html(data);
+            }
+        );
+    });    
+JS;
+$this->registerJs($js);
+?>
+
 <div class="adminuser-index">
 
-    <h1><?= Html::encode($this->title) ?></h1>
-
     <p>
-        <?= Html::a('新增管理员', ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('新增管理员', '#', [
+                'class' => 'btn btn-success',
+                'id'=>'create',
+                'data-toggle' => 'modal',
+                'data-target' => '#modal_id',
+            ]) ?>
     </p>
+
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
@@ -27,29 +72,39 @@ $this->params['breadcrumbs'][] = $this->title;
             'nickname',
             ['attribute'=>'role',
              'value' => 'roleStr',
-             'filter' => \common\models\Adminuser::allRoles(),
+             'filter' => Adminuser::allRoles(),
             ],
             'email:email',
 
             ['class' => 'yii\grid\ActionColumn',
-                'template' => '{view} {update} {resetpwd} {privilege} {delete}',
+                'template' => '{update} {resetpwd} {delete}',
                 'buttons' => [
-                    'resetpwd' => function($url,$model,$key){
+                    'update' => function($url,$model,$key) {
+                        $options = [
+                            'title'=>'修改资料',
+                            'aria-label'=>'修改资料',
+                            'data-id' => $key,
+                            'class' => 'update',
+                            'data-toggle' => 'modal',
+                            'data-target' => '#modal_id',
+                        ];
+                        return Html::a('<span class="glyphicon glyphicon-pencil"></span>','#',$options);
+                    },
+
+                    'resetpwd' => function($url,$model,$key) {
                         $options = [
                             'title'=>'重置密码',
                             'aria-label'=>'重置密码',
+                            'data-id' => $key,
+                            'class' => 'resetpwd',
+                            'data-toggle' => 'modal',
+                            'data-target' => '#modal_id',
                         ];
-                        return Html::a('<span class="glyphicon glyphicon-lock"></span>',$url,$options);
+                        return Html::a('<span class="glyphicon glyphicon-lock"></span>','#',$options);
                     },
-                    'privilege' => function($url,$model,$key){
-                        $options = [
-                            'title'=>'权限设置',
-                            'aria-label'=>'权限设置',
-                        ];
-                        return Html::a('<span class="glyphicon glyphicon-user"></span>',$url,$options);
-                    },
-                ]
+                ],
             ],
         ],
     ]); ?>
+
 </div>

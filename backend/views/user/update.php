@@ -1,7 +1,8 @@
 <?php
 
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
+use yii\bootstrap\ActiveForm;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $model common\models\User */
@@ -12,11 +13,13 @@ $this->params['breadcrumbs'][] = '修改';
 ?>
 <div class="user-update">
 
-    <h1><?= Html::encode($this->title) ?></h1>
-
     <div class="user-form">
 
-        <?php $form = ActiveForm::begin(); ?>
+        <?php $form = ActiveForm::begin([
+            'id' => 'update-form',
+            'validationUrl' => Url::toRoute(['validate-save', 'id'=>$model->id]),
+            'layout' => 'horizontal',
+        ]); ?>
 
         <?= $form->field($model, 'username', ['enableAjaxValidation' => true])->textInput(['maxlength' => true]) ?>
 
@@ -25,7 +28,10 @@ $this->params['breadcrumbs'][] = '修改';
         <?= $form->field($model,'class_id')->dropDownList(\common\models\Classes::allClasses());?>
 
         <div class="form-group">
-            <?= Html::submitButton('更新', ['class' =>'btn btn-primary']) ?>
+            <div class="col-sm-offset-3 col-sm-6">
+                <?= Html::submitButton('修改', ['class' =>'btn btn-primary']) ?>
+                <?= Html::a('取消', '#', ['class' =>'btn btn-danger', 'data-dismiss'=>'modal']) ?>
+            </div>
         </div>
 
         <?php ActiveForm::end(); ?>

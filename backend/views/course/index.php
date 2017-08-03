@@ -13,11 +13,10 @@ $this->params['breadcrumbs'][] = $this->title;
 
 <div class="course-index">
 
-    <h1><?= Html::encode($this->title) ?></h1>
-
     <p>
         <?= Html::a('新增课程', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
+
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
@@ -41,7 +40,6 @@ $this->params['breadcrumbs'][] = $this->title;
              'label' => '教室',
              'value' => 'classroom.name',
             ],
-            // 缺班级
 
             ['class' => 'yii\grid\ActionColumn',
              'template'=>'{update} {delete}'],

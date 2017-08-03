@@ -12,10 +12,11 @@ use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\Response;
 use yii\widgets\ActiveForm;
 
 /**
- * User模型控制器(实现增删查改动作)
+ * 用户管理模块控制器
  */
 class UserController extends Controller
 {
@@ -69,63 +70,77 @@ class UserController extends Controller
     {
         $model = new CreateUserForm();
 
-        if (Yii::$app->request->isAjax) {
-            // 块赋值验证
-            $model->load($_POST);
-            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
-            return  ActiveForm::validate($model);
-        }
-
         if ($model->load(Yii::$app->request->post()) && $model->createUser()) {
+            Yii::$app->getSession()->setFlash('success', '新增用户成功');
             return $this->redirect(['index']);
         } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
+            return $this->renderAjax('create', ['model' => $model]);
         }
     }
 
     /**
      * 更新一个用户的信息
+     * @param $id
+     * @return array|string
      */
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
 
-        if (Yii::$app->request->isAjax) {
-            // 块赋值验证
-            $model->load($_POST);
-            Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
-            return  ActiveForm::validate($model);
-        }
-
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            Yii::$app->getSession()->setFlash('success', '修改资料成功');
             return $this->redirect(['index']);
         } else {
-            return $this->render('update', [
-                'model' => $model,
-            ]);
+            return $this->renderAjax('update', ['model' => $model]);
         }
     }
 
     /**
+     * 验证新增与修改表单
+     * @param null $id
+     * @return array
+     */
+    public function actionValidateSave($id = null)
+    {
+        $model = $id === null ? new CreateUserForm() : $this->findModel($id);
+        $model->load(Yii::$app->request->post());
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return ActiveForm::validate($model);
+    }
+
+    /**
      * 更新用户密码
+     * @param $id
+     * @return string|Response
      */
     public function actionResetpwd($id)
     {
         $model = new ResetpwdForm();
 
         if ($model->load(Yii::$app->request->post()) && $model->resetPassword($this->findModel($id))) {
-            return $this->redirect(['index']);
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return true;
         } else {
-            return $this->render('resetpwd', [
-                'model' => $model,
-            ]);
+            return $this->renderAjax('resetpwd', ['model' => $model]);
         }
     }
 
     /**
+     * 验证重置密码表单
+     * @return array
+     */
+    public function actionValidateResetpwd()
+    {
+        $model = new ResetpwdForm();
+        $model->load(Yii::$app->request->post());
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return ActiveForm::validate($model);
+    }
+
+    /**
      * 删除一个用户
+     * @param $id
+     * @return Response
      */
     public function actionDelete($id)
     {
@@ -137,6 +152,9 @@ class UserController extends Controller
     /**
      * 根据id找到对应用户记录
      * 如果记录不存在则跳转到404页面
+     * @param $id
+     * @return User
+     * @throws NotFoundHttpException
      */
     protected function findModel($id)
     {
