@@ -3,6 +3,7 @@ namespace common\widgets;
 
 use common\models\Course;
 use yii\base\Widget;
+use yii\helpers\Html;
 
 /**
  * 课表小部件
@@ -26,9 +27,17 @@ class CoursesWidget extends Widget
         for ($i=1;$i<=12;$i++) {
             for ($j=0;$j<=7;$j++) {
                 if ($j==0) {
-                    $this->tbody[$i][$j] = '<td style="vertical-align: middle;text-align: center;">'.$i.'</td>';
+                    $this->tbody[$i][$j] = Html::tag('th', $i, [
+                        'style'=>[
+                            'vertical-align'=>'middle',
+                            'text-align'=>'center'
+                        ]
+                    ]);
                 } else {
-                    $this->tbody[$i][$j] = '<td></td>';
+                    $this->tbody[$i][$j] = Html::tag('td', '', [
+                        'data-day'=>$j,
+                        'data-sec'=>$i,
+                    ]);
                 }
             }
         }
@@ -71,14 +80,24 @@ EOT;
         foreach ($this->courses as $course) {
             // 格式化sec属性
             $course->sec = $this->filterSec($course->sec);
+            // 遍历
             foreach ($course->sec as $sec => $item) {
                 foreach ($item as $key=>$value) {
                     // 填充课程对应单元格的内容
                     if ($key == 0) {
                         $teacher = $course->user->getAttribute('nickname');
                         $classroom = $course->classroom->getAttribute('name');
-                        $this->tbody[$value][$course->day] = '<td style="vertical-align:middle" class="info" rowspan="'.count($item).'">'.$course->name.$classroom.$teacher.'</td>';
+                        $content = $course->name.'<br />@'.$classroom.' @'.$teacher;
+                        $this->tbody[$value][$course->day] = Html::tag('td', $content, [
+                                'style' => ['vertical-align'=>'middle'],
+                                'class' => 'info',
+                                'data-id'=>$course->id,
+                                'data-day'=>$course->day,
+                                'data-sec'=>$value,
+                                'rowspan'=>count($item),
+                        ]);
                     } else {
+                        // 删除rowspan后多出tr标签
                         $this->tbody[$value][$course->day] = null;
                     }
                 }
@@ -91,11 +110,12 @@ EOT;
 
         $tbody = '<tbody><tr>'.implode('</tr><tr>', $this->tbody).'</tr></tbody>';
         $table = $thead.$tbody.'</table></div>';
+
         return $table;
     }
 
     /**
-     * 处理sec属性,连续的节数为一个数组且对应的键为起始节
+     * 处理sec属性, 连续的节数为一个数组元素且对应的键为起始节
      * @param $sec
      * @return array
      */

@@ -27,6 +27,10 @@ namespace common\models;
  */
 class Application extends \yii\db\ActiveRecord
 {
+    const TYPE_ADJUST = 1;
+    const TYPE_SUSPEND = 2;
+    const TYPE_SCHEDULE = 3;
+
     /**
      * @inheritdoc
      */
@@ -41,15 +45,63 @@ class Application extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['course_id', 'user_id', 'apply_at', 'apply_week', 'adjust_week', 'adjust_day', 'adjust_sec', 'classroom_id', 'teacher_id', 'type', 'reason'], 'required'],
-            [['course_id', 'user_id', 'apply_at', 'adjust_day', 'classroom_id', 'teacher_id', 'type', 'status'], 'integer'],
+            [['course_id', 'user_id', 'type', 'reason'], 'required'],
+            ['apply_week', 'required',
+                'when' => function ($model) {
+                    return $model->type != self::TYPE_SCHEDULE;
+                },
+                'whenClient' => "function (attribute, value) {
+                    return $('#type').value != 3;
+                }"
+            ],
+            [['adjust_week', 'adjust_day', 'adjust_sec', 'classroom_id', 'teacher_id'], 'required',
+                'when' => function ($model) {
+                    return $model->type != self::TYPE_SUSPEND;
+                },
+                'whenClient' => "function (attribute, value) {
+                    return $('#type').value != 2;
+                }"
+            ],
+            ['classroom_id', 'filter', 'filter' => function ($value) {
+                return empty($value)?$value:Classroom::find()->where(['name'=>$value])->scalar();
+            }, 'skipOnArray' => true],
+            ['status', 'default', 'value' => Audit::STATUS_UNAUDITED],
+            [['course_id', 'user_id', 'apply_at', 'adjust_day', 'teacher_id', 'type', 'status'], 'integer'],
+            ['adjust_sec', 'filter', 'filter' => function ($value) {
+                return is_array($value)?implode(',', $value):$value;
+            }],
             [['apply_week', 'adjust_week', 'adjust_sec'], 'string', 'max' => 64],
             [['reason'], 'string', 'max' => 255],
             [['course_id'], 'exist', 'skipOnError' => true, 'targetClass' => Course::className(), 'targetAttribute' => ['course_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
             [['classroom_id'], 'exist', 'skipOnError' => true, 'targetClass' => Classroom::className(), 'targetAttribute' => ['classroom_id' => 'id']],
             [['teacher_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['teacher_id' => 'id']],
+            [['apply_week', 'adjust_week', 'adjust_day', 'adjust_sec', 'classroom_id', 'teacher_id'], 'default', 'value' => null],
+
         ];
+    }
+
+    /**
+     * 验证教室在所选时间段是否空闲(验证规则)
+     * @param string $attribute
+     * @param array $params
+     */
+    public function validateClassroom($attribute, $params)
+    {
+        if (!$this->hasErrors()) {
+            $secSelected = str_replace(',', '|', $this->adjust_sec);
+            $weekSelected = $this->adjust_week;
+
+            $query = Course::find();
+            $query->andFilterWhere(['not', ['id'=>$this->course_id]]);
+            $query->andWhere(['day'=>$this->adjust_day]);
+            $query->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(".$secSelected.")[^0-9]+'");
+            $query->andWhere("CONCAT(',',`week`,',') REGEXP '[^0-9]+(".$weekSelected.")[^0-9]+'");
+
+            if ($query->andWhere(['classroom_id'=>$this->classroom_id])->one()) {
+                $this->addError($attribute, '教室已被占用');
+            }
+        }
     }
 
     /**
@@ -72,6 +124,20 @@ class Application extends \yii\db\ActiveRecord
             'reason' => '事由',
             'status' => '状态',
         ];
+    }
+
+    /**
+     * @param bool $insert
+     * @return bool
+     */
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)){
+            $this->apply_at = time();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

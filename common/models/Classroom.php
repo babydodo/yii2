@@ -16,8 +16,8 @@ namespace common\models;
  */
 class Classroom extends \yii\db\ActiveRecord
 {
-    const TYPES_ORDINARY = 0;
-    const TYPES_SPECIAL = 1;
+    const TYPE_ORDINARY = 0;
+    const TYPE_SPECIAL = 1;
 
     /**
      * @inheritdoc
@@ -75,7 +75,7 @@ class Classroom extends \yii\db\ActiveRecord
      */
     public function getTypeStr()
     {
-        return $this->type==self::TYPES_ORDINARY?'普通':'机房';
+        return $this->type==self::TYPE_ORDINARY?'普通':'机房';
     }
 
     /**
@@ -83,6 +83,6 @@ class Classroom extends \yii\db\ActiveRecord
      */
     public static function allTypes()
     {
-        return [self::TYPES_ORDINARY=>'普通',self::TYPES_SPECIAL=>'机房'];
+        return [self::TYPE_ORDINARY=>'普通',self::TYPE_SPECIAL=>'机房'];
     }
 }

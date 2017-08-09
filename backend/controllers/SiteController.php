@@ -12,7 +12,7 @@ use backend\models\LoginForm;
 use yii\web\Response;
 
 /**
- * 网站控制器
+ * 后台站点控制器
  */
 class SiteController extends Controller
 {

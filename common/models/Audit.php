@@ -5,12 +5,13 @@ namespace common\models;
 use Yii;
 
 /**
- * This is the model class for table "audit".
+ * audit表模型类
  *
  * @property integer $id
  * @property integer $application_id
  * @property integer $adminuser_id
  * @property integer $status
+ * @property integer $audit_at
  * @property string $remark
  *
  * @property Application $application
@@ -18,6 +19,10 @@ use Yii;
  */
 class Audit extends \yii\db\ActiveRecord
 {
+    const STATUS_UNAUDITED = 1;
+    const STATUS_FAILED = 0;
+    const STATUS_PASS = 2;
+
     /**
      * @inheritdoc
      */
@@ -33,10 +38,13 @@ class Audit extends \yii\db\ActiveRecord
     {
         return [
             [['application_id', 'adminuser_id'], 'required'],
-            [['application_id', 'adminuser_id', 'status'], 'integer'],
+            [['application_id', 'adminuser_id', 'status', 'audit_at'], 'integer'],
             [['remark'], 'string', 'max' => 255],
             [['application_id'], 'exist', 'skipOnError' => true, 'targetClass' => Application::className(), 'targetAttribute' => ['application_id' => 'id']],
             [['adminuser_id'], 'exist', 'skipOnError' => true, 'targetClass' => Adminuser::className(), 'targetAttribute' => ['adminuser_id' => 'id']],
+            ['status', 'default', 'value' => self::STATUS_UNAUDITED],
+            ['audit_at', 'default', 'value' => null],
+            ['remark', 'default', 'value' => null],
         ];
     }
 
@@ -50,8 +58,25 @@ class Audit extends \yii\db\ActiveRecord
             'application_id' => '申请ID',
             'adminuser_id' => '审核人ID',
             'status' => '状态',
+            'audit_at' => '审核时间',
             'remark' => '备注',
         ];
+    }
+
+    /**
+     * @param bool $insert
+     * @return bool
+     */
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)){
+            if (!$insert) {
+                $this->audit_at = time();
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

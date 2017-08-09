@@ -44,8 +44,15 @@ JS;
 
     <?php
     // 自定义css
-    $css = '.table-hover > tbody > tr:hover > td,
-    .table-hover > tbody > tr:hover > th {background-color: #dff0d8;}';
+    $css = '.table-hover > tbody > tr:hover > td, .table-hover > tbody > tr:hover > th 
+    {
+        background-color: #dff0d8;
+    }
+    .btn-default:focus, .btn-default.focus 
+    {
+        background-color: #fff;
+        border-color: #ccc;
+    }';
     $this->registerCss($css);
     ?>
 </head>

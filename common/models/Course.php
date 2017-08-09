@@ -46,20 +46,16 @@ class Course extends \yii\db\ActiveRecord
     {
         return [
             [['number', 'name', 'user_id', 'day', 'sec', 'week', 'classroom_id'], 'required'],
-            [['number', 'user_id', 'day'], 'integer'],
-            [['name'], 'string', 'max' => 128],
-
-            [['sec', 'week'],'filter', 'filter' => function ($value) {
-                return implode(',', $value);
-            }],
-            [['sec', 'week'], 'string', 'max' => 64],
-
-            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
-
             ['classroom_id', 'filter', 'filter' => function ($value) {
                 return Classroom::find()->where(['name'=>$value])->scalar();
             }, 'skipOnArray' => true],
-
+            [['number', 'user_id', 'day'], 'integer'],
+            [['name'], 'string', 'max' => 128],
+            [['sec', 'week'],'filter', 'filter' => function ($value) {
+                return is_array($value)?implode(',', $value):$value;
+            }],
+            [['sec', 'week'], 'string', 'max' => 64],
+            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
             ['classroom_id', 'exist', 'skipOnError' => true, 'targetClass' => Classroom::className(), 'targetAttribute' => ['classroom_id' => 'id']],
             ['classroom_id', 'validateClassroom'],
         ];

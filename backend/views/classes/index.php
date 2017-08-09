@@ -34,7 +34,7 @@ $js = <<<JS
         );
     });
     
-    var class_id;
+    let class_id;
     $('.show-courses').on('click',function () {
         $('#modal_id').find('.modal-title').html('{$dropDownList}');
         class_id = $(this).closest('tr').data('key');
@@ -94,7 +94,6 @@ $this->registerJs($js);
                         $options = [
                             'title'=>'显示课表',
                             'aria-label'=>'显示课表',
-                            'data-id' => $key,
                             'class' => 'show-courses',
                             'data-toggle' => 'modal',
                             'data-target' => '#modal_id',
@@ -106,7 +105,6 @@ $this->registerJs($js);
                         $options = [
                             'title'=>'修改资料',
                             'aria-label'=>'修改资料',
-                            'data-id' => $key,
                             'class' => 'update',
                             'data-toggle' => 'modal',
                             'data-target' => '#modal_id',

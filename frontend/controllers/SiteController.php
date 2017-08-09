@@ -3,16 +3,20 @@ namespace frontend\controllers;
 
 use common\models\Course;
 use common\models\User;
+use common\widgets\CoursesWidget;
 use Yii;
+use yii\bootstrap\ActiveForm;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use frontend\models\LoginForm;
 use backend\models\ResetpwdForm;
+use yii\web\Response;
+
 
 /**
- * Site controller
+ * 前台站点控制器
  */
 class SiteController extends Controller
 {
@@ -108,29 +112,41 @@ class SiteController extends Controller
 
     /**
      * 显示个人详细课表
+     * @param int $week
      * @return mixed
      */
-    public function actionShowCourses()
+    public function actionShowCourses($week = 1)
     {
         // 筛选周
-        $model = Course::find()->where('FIND_IN_SET(3,week)');
+        $model = Course::find()->where('FIND_IN_SET('.$week.',week)');
 
         if (Yii::$app->user->identity->class_id == User::TEACHER_CLASS) {
             // 教师课表
             $courses = $model->andWhere(['user_id'=>Yii::$app->user->id])->all();
         } else {
             // 学生课表
-            $courses = $model->joinWith(['classes', 'students'])
-                            ->andWhere(['user.id'=>Yii::$app->user->id])
-                            ->orWhere(['classes.id' => Yii::$app->user->identity->class_id])
+            $model2 = clone $model;
+            // step.1 查询所属班级课程
+            $classCourses = $model->innerJoinWith(['classes'])
+                            ->andWhere(['classes.id' => Yii::$app->user->identity->class_id])
                             ->all();
+            // step.2 查询学生自身选课
+            $studentCourses = $model2->innerJoinWith(['students'])
+                            ->andWhere(['user.id'=>Yii::$app->user->id])
+                            ->all();
+            // step.3 合并课程
+            $courses = array_merge($classCourses, $studentCourses);
+        }
+
+        if (Yii::$app->request->isAjax) {
+            return CoursesWidget::widget(['courses'=>$courses]);
         }
 
         return $this->render('showCourses', ['courses' => $courses]);
     }
 
     /**
-     * Resets password.
+     * 重置密码
      *
      * @return mixed
      * @throws BadRequestHttpException
@@ -138,13 +154,24 @@ class SiteController extends Controller
     public function actionResetpwd()
     {
         $model = new ResetpwdForm();
-        $user = User::findOne(Yii::$app->user->id);
-        if ($model->load(Yii::$app->request->post()) && $model->resetPassword($user)) {
-            Yii::$app->session->setFlash('success', '密码修改成功!');
-            return $this->goHome();
+        if ($model->load(Yii::$app->request->post()) && $model->resetPassword(User::findOne(Yii::$app->user->id))) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return true;
         } else {
-            return $this->render('resetpwd', ['model' => $model]);
+            return $this->renderAjax('resetpwd', ['model' => $model]);
         }
+    }
+
+    /**
+     * 验证重置密码表单
+     * @return array
+     */
+    public function actionValidateResetpwd()
+    {
+        $model = new ResetpwdForm();
+        $model->load(Yii::$app->request->post());
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return ActiveForm::validate($model);
     }
 
     /**
@@ -156,6 +183,5 @@ class SiteController extends Controller
     {
         return $this->render('about');
     }
-
 
 }

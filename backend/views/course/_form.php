@@ -13,17 +13,17 @@ use yii\helpers\Url;
 ?>
 
 <?php
-$requestUrl = Url::toRoute('free-classroom');
+$freeClassroomUrl = Url::toRoute('free-classroom');
 $js = <<<JS
-    $(document).on('click', '#btn_id', function () {
-        var secCheckBox = [];
+    $(document).on('click', '#free-classroom', function () {
+        let secCheckBox = [];
         $("#courseform-sec input[type='checkbox']").each(function () {
             if($(this).prop('checked')) {
                 secCheckBox.push($(this).attr("value"));
             }
         });
         
-        var weekCheckBox = [];
+        let weekCheckBox = [];
         $("#courseform-week input[type='checkbox']").each(function () {
             if($(this).prop('checked')) {
                 weekCheckBox.push($(this).attr("value"));
@@ -31,7 +31,7 @@ $js = <<<JS
         });
         
         $('#modal_id').find('.modal-title').html('空闲教室');
-        $.post('{$requestUrl}', {day:$("#courseform-day").val(), sec:secCheckBox, week:weekCheckBox},
+        $.post('{$freeClassroomUrl}', {id:'{$model->id}', day:$("#courseform-day").val(), sec:secCheckBox, week:weekCheckBox},
             function (data) {
                 $('#modal_id').find('.modal-body').html(data);
             }
@@ -53,24 +53,61 @@ $this->registerJs($js);
 
     <?= $form->field($model, 'day')->dropDownList(Course::allDays(),['prompt'=>'请选择时间']) ?>
 
-    <?= $form->field($model, 'sec')->checkboxList(Course::allSections(), ['class'=>'form-inline']) ?>
+    <?= $form->field($model, 'sec')->checkboxList(Course::allSections(), [
+        'item'=>function($index, $label, $name, $checked, $value) {
+            $checkStr = $checked?'checked':'';
+            $activeStr = $checked?' active':'';
+            return '<div style="margin-bottom: 4px;" class="btn-group" data-toggle="buttons">
+                        <label class="btn btn-default'.$activeStr.'">
+                            <input type="checkbox" name="'.$name.'" value="'.$value.'" '.$checkStr.'>'
+                            .$label.
+                        '</label>
+                    </div>';
+        }]) ?>
 
-    <?= $form->field($model, 'week')->checkboxList(Course::allWeeks(), ['class'=>'form-inline']) ?>
+    <?= $form->field($model, 'week')->checkboxList(Course::allWeeks(), [
+        'item'=>function($index, $label, $name, $checked, $value) {
+            $checkStr = $checked?'checked':'';
+            $activeStr = $checked?' active':'';
+            return '<div style="margin-bottom: 4px;" class="btn-group" data-toggle="buttons">
+                        <label class="btn btn-default'.$activeStr.'">
+                            <input type="checkbox" name="'.$name.'" value="'.$value.'" '.$checkStr.'>'
+                            .$label.
+                        '</label>
+                    </div>';
+        }]) ?>
 
-    <div class="form-group">
-        <div class="col-sm-offset-3 col-sm-6">
-            <?= Html::a('显示空闲教室', '#', [
-                    'id' => 'btn_id',
-                    'data-toggle' => 'modal',
-                    'data-target' => '#modal_id',
-                    'class' => 'btn btn-default',
-            ]) ?>
-        </div>
-    </div>
+    <?php $button = Html::a('显示空闲教室', '#', [
+            'id' => 'free-classroom',
+            'data-toggle' => 'modal',
+            'data-target' => '#modal_id',
+            'class' => 'btn btn-default',
+    ]) ?>
 
-    <?= $form->field($model, 'classroom_id')->textInput() ?>
+    <?= $form->field($model, 'classroom_id', [
+            'template'=>
+                "{label}
+                <div class='col-sm-6'>
+                    <div class='input-group'>
+                        {input}
+                        <span class='input-group-btn'>".$button."</span>
+                    </div>
+                    {hint}
+                    {error}
+                </div>"
+    ])->textInput() ?>
 
-    <?= $form->field($model, 'classID')->checkboxList(Classes::allClasses(false), ['class'=>'form-inline']) ?>
+    <?= $form->field($model, 'classID')->checkboxList(Classes::allClasses(false), [
+        'item'=>function($index, $label, $name, $checked, $value) {
+            $checkStr = $checked?'checked':'';
+            $activeStr = $checked?' active':'';
+            return '<div style="margin-bottom: 4px;" class="btn-group" data-toggle="buttons">
+                        <label class="btn btn-default'.$activeStr.'">
+                            <input type="checkbox" name="'.$name.'" value="'.$value.'" '.$checkStr.'>'
+                            .$label.
+                        '</label>
+                    </div>';
+        }]) ?>
 
     <div class="form-group">
         <div class="col-sm-offset-3 col-sm-6">

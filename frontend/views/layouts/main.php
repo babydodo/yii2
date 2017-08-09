@@ -4,9 +4,11 @@
 /* @var $content string */
 
 use common\models\User;
+use yii\bootstrap\Modal;
 use yii\helpers\Html;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
+use yii\helpers\Url;
 use yii\widgets\Breadcrumbs;
 use frontend\assets\AppAsset;
 use common\widgets\Alert;
@@ -23,6 +25,23 @@ AppAsset::register($this);
     <?= Html::csrfMetaTags() ?>
     <title><?= Html::encode($this->title) ?></title>
     <?php $this->head() ?>
+
+    <?php
+    // 自定义js
+    $resetpwdUrl = Url::toRoute('/site/resetpwd');
+    $js = <<<JS
+    $('#resetpwd').on('click',function () {
+        $('#modal_id').find('.modal-title').html('重置密码');
+        $.get('{$resetpwdUrl}', {},
+            function (data) {
+                $('#modal_id').find('.modal-body').html(data);
+            }
+        );
+    });    
+JS;
+    $this->registerJs($js);
+    ?>
+
 </head>
 <body>
 <?php $this->beginBody() ?>
@@ -47,7 +66,14 @@ AppAsset::register($this);
     if (Yii::$app->user->isGuest) {
         $menuItems[] = ['label' => '登陆', 'url' => ['/site/login']];
     } else {
-        $menuItems[] = ['label' => '修改密码', 'url' => ['/site/resetpwd']];
+        $menuItems[] = '<li>'
+            . Html::a('修改密码', '#', [
+                'id'=>'resetpwd',
+                'data-toggle' => 'modal',
+                'data-target' => '#modal_id',
+                'class' => 'btn btn-link'
+            ])
+            . '</li>';
         $menuItems[] = '<li>'
             . Html::beginForm(['/site/logout'], 'post')
             . Html::submitButton(
@@ -72,6 +98,13 @@ AppAsset::register($this);
         <?= $content ?>
     </div>
 </div>
+
+<?php Modal::begin([
+    'id' => 'modal_id',
+    'header' => '<h4 class="modal-title"></h4>',
+]); ?>
+
+<?php Modal::end(); ?>
 
 <footer class="footer">
     <div class="container">

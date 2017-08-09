@@ -11,7 +11,7 @@ $this->params['breadcrumbs'][] = '修改';
 ?>
 <div class="course-update">
 
-    <h2 align="center"><?= Html::encode($this->title) ?></h2>
+    <h3 align="center"><?= Html::encode($this->title) ?></h3>
 
     <?= $this->render('_form', [
         'model' => $model,
