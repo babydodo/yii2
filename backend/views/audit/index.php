@@ -11,32 +11,35 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="application-index">
 
-    <h1><?= Html::encode($this->title) ?></h1>
-
-    <p>
-        <?= Html::a('已审核记录', ['create'], ['class' => 'btn btn-success']) ?>
-    </p>
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
-            'id',
-            'course_id',
-            'user_id',
-            'apply_at',
-            'apply_week',
-            // 'adjust_week',
-            // 'adjust_day',
-            // 'adjust_sec',
-            // 'classroom_id',
-            // 'teacher_id',
-            // 'type',
-            // 'reason',
-            // 'status',
-            // 'remark',
+            ['label' => '申请人',
+             'value' => 'application.user.nickname',
+            ],
+            'application.apply_at:date',
+            ['label' => '调整类型',
+             'value' => 'application.typeStr',
+            ],
+            ['label' => '审核',
+             'value' => 'statusStr',
+            ],
 
-            ['class' => 'yii\grid\ActionColumn'],
+            ['class' => 'yii\grid\ActionColumn',
+                'template' => '{view}',
+                'buttons' => [
+                    'view' => function($url,$model,$key) {
+                        $options = [
+                            'title'=>'查看与审核',
+                            'aria-label'=>'查看与审核',
+                        ];
+                        return Html::a('<span class="glyphicon glyphicon-edit"></span>', $url, $options);
+                    },
+
+                ],
+            ],
         ],
         'emptyText'=>'当前没有申请, 无需审核~',
         'emptyTextOptions'=>['style'=>'color:red;font-weight:bold;font-size:24px'],

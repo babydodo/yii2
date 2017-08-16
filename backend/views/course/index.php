@@ -1,5 +1,6 @@
 <?php
 
+use common\models\Course;
 use yii\helpers\Html;
 use yii\grid\GridView;
 
@@ -29,20 +30,21 @@ $this->params['breadcrumbs'][] = $this->title;
              'label' => '教师',
              'value' => 'user.nickname',
             ],
+            'week',
             ['attribute' => 'day',
              'label' => '星期',
              'value' => 'dayStr',
-             'filter' => \common\models\Course::allDays(),
+             'filter' => Course::allDays(),
             ],
             'sec',
-            'week',
             ['attribute' => 'classroomName',
              'label' => '教室',
              'value' => 'classroom.name',
             ],
 
             ['class' => 'yii\grid\ActionColumn',
-             'template'=>'{update} {delete}'],
+             'template'=>'{update} {delete}',
+            ],
         ],
     ]); ?>
 </div>

@@ -17,7 +17,6 @@ namespace common\models;
  * @property Application[] $applications
  * @property User $user
  * @property Classroom $classroom
- * @property Course[] $courses
  * @property Classes[] $classes
  * @property Elective[] $students
  */
@@ -149,17 +148,16 @@ class Course extends \yii\db\ActiveRecord
      */
     public function getDayStr()
     {
-        switch ($this->day) {
-            case self::MONDAY : $dayStr = '周一'; break;
-            case self::TUESDAY : $dayStr = '周二'; break;
-            case self::WEDNESDAY : $dayStr = '周三'; break;
-            case self::THURSDAY : $dayStr = '周四'; break;
-            case self::FRIDAY : $dayStr = '周五'; break;
-            case self::SATURDAY : $dayStr = '周六'; break;
-            case self::SUNDAY : $dayStr = '周日'; break;
-            default : $dayStr = NULL;
-        }
-        return $dayStr;
+        $dayStr = [
+            self::MONDAY    => '周一',
+            self::TUESDAY   => '周二',
+            self::WEDNESDAY => '周三',
+            self::THURSDAY  => '周四',
+            self::FRIDAY    => '周五',
+            self::SATURDAY  => '周六',
+            self::SUNDAY    => '周日',
+        ];
+        return $dayStr[$this->day];
     }
 
     /**

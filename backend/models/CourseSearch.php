@@ -77,20 +77,12 @@ class CourseSearch extends Course
             'day' => $this->day,
             'classroom_id' => $this->classroom_id,
         ]);
-        $query->andFilterWhere(['like', 'course.number', $this->name])
+        $query->andFilterWhere(['like', 'course.number', $this->number])
             ->andFilterWhere(['like', 'course.name', $this->name])
+            ->andFilterWhere(['like', 'week', $this->week])
             ->andFilterWhere(['like', 'sec', $this->sec])
             ->andFilterWhere(['like', 'user.nickname', $this->teacher])
             ->andFilterWhere(['like', 'classroom.name', $this->classroomName]);
-
-        if (!empty($this->week)) {
-            $weekNum = explode('-', $this->week);
-            $weekStr = array();
-            foreach ($weekNum as $week) {
-                $weekStr[] = chr($week+64);
-            }
-            $query->andFilterWhere(['like', 'week', implode('-', $weekStr)]);
-        }
 
         // 增加teacher属性正倒排序
         $dataProvider->sort->attributes['teacher'] = [

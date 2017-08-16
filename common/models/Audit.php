@@ -60,6 +60,7 @@ class Audit extends \yii\db\ActiveRecord
             'status' => '状态',
             'audit_at' => '审核时间',
             'remark' => '备注',
+            'statusStr' => '状态',
         ];
     }
 
@@ -93,5 +94,18 @@ class Audit extends \yii\db\ActiveRecord
     public function getAdminuser()
     {
         return $this->hasOne(Adminuser::className(), ['id' => 'adminuser_id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getStatusStr()
+    {
+        $statusStr = [
+            Audit::STATUS_UNAUDITED=>'待审核',
+            Audit::STATUS_FAILED=>'不同意',
+            Audit::STATUS_PASS=>'同意',
+        ];
+        return $statusStr[$this->status];
     }
 }

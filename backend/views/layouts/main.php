@@ -85,7 +85,7 @@ JS;
         $otherRoles = [Adminuser::DEAN, Adminuser::LABORATORY, Adminuser::COUNSELOR];
         if (in_array(Yii::$app->user->identity->role, $otherRoles, true)) {
             $menuItems = [
-                ['label' => '申请审核', 'url' => ['/application/index']],
+                ['label' => '申请审核', 'url' => ['/audit/index']],
             ];
         }
     }

@@ -1,10 +1,12 @@
 <?php
 
+use common\models\Audit;
 use yii\helpers\Html;
 use yii\widgets\DetailView;
 
 /* @var $this yii\web\View */
 /* @var $model common\models\Application */
+/* @var $id */
 
 $this->title = '审核申请';
 $this->params['breadcrumbs'][] = ['label' => '审核管理', 'url' => ['index']];
@@ -12,37 +14,46 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="application-view">
 
-    <h1><?= Html::encode($this->title) ?></h1>
-
-    <p>
-        <?= Html::a('通过', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
-        <?= Html::a('不通过', ['delete', 'id' => $model->id], [
-            'class' => 'btn btn-danger',
-            'data' => [
-                'confirm' => 'Are you sure you want to delete this item?',
-                'method' => 'post',
-            ],
-        ]) ?>
-    </p>
-
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
-            'id',
-            'course_id',
-            'user_id',
-            'apply_at',
-            'apply_week',
-            'adjust_week',
-            'adjust_day',
-            'adjust_sec',
-            'classroom_id',
-            'teacher_id',
-            'type',
-            'reason',
-            'status',
-            'remark',
+            'application.user.nickname',
+            'application.typeStr',
+            'application.reason',
+            'application.apply_at:datetime',
+            // 调整前
+            'application.course.name',
+            'application.apply_week',
+            'application.course.day',
+            'application.course.sec',
+            'application.course.classroom.name',
+            // 调整后
+            'application.adjust_week',
+            'application.adjust_day',
+            'application.adjust_sec',
+            'application.classroom.name',
+            'application.teacher.nickname',
         ],
     ]) ?>
+
+    <?php if ($model->status== Audit::STATUS_UNAUDITED) { ?>
+        <p>
+            <?= Html::a('同意', ['pass', 'id' => $model->id], [
+                    'class' => 'btn btn-primary',
+                    'data' => [
+                        'confirm' => '确定同意该申请吗?',
+                        'method' => 'post',
+                    ],
+            ]) ?>
+
+            <?= Html::a('不同意', ['failed', 'id' => $model->id], [
+                'class' => 'btn btn-danger',
+                'data' => [
+                    'confirm' => '确定不同意该申请吗?',
+                    'method' => 'post',
+                ],
+            ]) ?>
+        </p>
+    <?php } ?>
 
 </div>

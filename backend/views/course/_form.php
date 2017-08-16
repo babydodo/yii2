@@ -36,6 +36,12 @@ $js = <<<JS
                 $('#modal_id').find('.modal-body').html(data);
             }
         );
+        
+        // modal每个按钮点击事件
+        $('.modal-body').off('click').on('click', 'button', function() {
+            $('#courseform-classroom_id').val($(this).text());    
+            $('#modal_id').modal('hide');
+        });
     });
 JS;
 $this->registerJs($js);

@@ -5,9 +5,11 @@ namespace backend\controllers;
 use common\models\Adminuser;
 use common\models\Audit;
 use common\models\Course;
+use common\models\CourseRelationship;
 use Yii;
 use common\models\Application;
 use yii\data\ActiveDataProvider;
+use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -39,11 +41,12 @@ class AuditController extends Controller
     public function actionIndex()
     {
         $dataProvider = new ActiveDataProvider([
-            'query' => Application::find()->where(['adminuser_id'=>Yii::$app->user->id]),
+            'query' => Audit::find()->where(['adminuser_id'=>Yii::$app->user->id]),
         ]);
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
+            'pagination' => ['pageSize'=>10], //分页
         ]);
     }
 
@@ -80,32 +83,53 @@ class AuditController extends Controller
                 // 则申请状态为通过
                 $application = $model->application;
                 $application->status = Audit::STATUS_PASS;
-                $application->save();
+                $application->save(false);
                 // 更新调、停对应申请调整课程的周记录
                 $course = $application->course;
                 if ($application->type != Application::TYPE_SCHEDULE) {
                     $week = explode(',', $course->week);
-                    $course->week = array_diff($week, [$application->apply_week]);
-                    $course->save();
+                    $course->week = implode(',', array_diff($week, [$application->apply_week]));
+                    if (empty($course->week)) {
+                        $course->delete();
+                    } else {
+                        $course->save(false);
+                    }
                 }
                 // 新增调、排课记录
                 if ($application->type != Application::TYPE_SUSPEND) {
+                    // 新增课程
                     $newCourse = new Course();
                     $newCourse->number = $course->number;
                     $newCourse->name = $course->name;
                     $newCourse->user_id = $application->teacher_id;
                     $newCourse->day = $application->adjust_day;
-                    $newCourse->sec = $application->adjust_sec;
+
+                    // 处理sec, 加上同一天中未被申请调整的节次
+                    $course->sec = explode(',', $course->sec);
+                    $application->apply_sec = explode(',', $application->apply_sec);
+                    $diff = array_diff($course->sec, $application->apply_sec);
+                    $newCourse->sec = array_merge($diff, $application->adjust_sec);
+                    sort($newCourse->sec);
+
                     $newCourse->week = $application->adjust_week;
                     $newCourse->classroom_id = $application->classroom_id;
                     $newCourse->save();
+
+                    // 新增班级关联
+                    foreach ($course->classes as $class) {
+                        $newRelation = new CourseRelationship();
+                        $newRelation->class_id = $class->id;
+                        $newRelation->course_id = $newCourse->getAttribute('id');
+                        $newRelation->save();
+                    }
+
                 }
             }
 
             // 如果审核角色不是教学副院长
             if ($model->adminuser->role != Adminuser::DEAN) {
                 // 判断是否将申请推送至教学副院长
-                $audits = Audit::findAll(['application_id'=>$model->adminuser_id]);
+                $audits = Audit::findAll(['application_id'=>$model->application_id]);
                 $push = false;
                 foreach ($audits as $audit) {
                     if ($audit->status == Audit::STATUS_PASS) {
@@ -157,17 +181,17 @@ class AuditController extends Controller
             // 置审核状态为不通过
             $model->status = Audit::STATUS_FAILED;
             // 缺备注赋值
-            $model->remark = null;
+            $model->remark = '111';
             $model->save();
 
             // 置申请状态为不通过
             $application = $model->application;
             $application->status = Audit::STATUS_FAILED;
-            $application->save();
+            $application->save(false);
 
             // 如果审核角色不是教学副院长, 删除其他审核推送
             if ($model->adminuser->role != Adminuser::DEAN) {
-                Audit::deleteAll(['application_id'=>$model->application_id, ['not', ['id'=>$model->id]]]);
+                Audit::deleteAll(['and', 'application_id'=>$application->id, ['not', ['id'=>$model->id]]]);
             }
 
             // 提交事务

@@ -8,8 +8,11 @@ use common\models\Audit;
 use common\models\Classroom;
 use common\models\Course;
 use common\widgets\ButtonsWidget;
+use common\widgets\CoursesWidget;
 use Yii;
 use yii\data\ActiveDataProvider;
+use yii\helpers\ArrayHelper;
+use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -67,54 +70,19 @@ class ApplicationController extends Controller
         // 块赋值
         $load = $model->load(Yii::$app->request->post());
 
+        // ajax验证
         if (Yii::$app->request->isAjax) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             return ActiveForm::validate($model);
         }
 
         if ($load && $model->validate()) {
+            // 开启事务
             $transaction = Yii::$app->db->beginTransaction();
             try {
                 $model->save(false);
-                $id = $model->getAttribute('id');
-                // 如果不是申请停课
-                if ($model->type != Application::TYPE_SUSPEND) {
-                    // 推送对应班级辅导审核
-                    $course = Course::findOne($model->getAttribute('course_id'));
-                    $adminuser_id = array();
-                    foreach ($course->classes as $class) {
-                        $adminuser_id[] = $class->adminuser_id;
-                    }
-                    $adminusers = array_unique($adminuser_id);
-                    foreach ($adminusers as $adminuser) {
-                        $audit = new Audit();
-                        $audit->adminuser_id = $adminuser;
-                        $audit->application_id = $id;
-                        $audit->save();
-                    }
-
-                    $classroom = Classroom::findOne($model->getAttribute('classroom_id'));
-                    // 判断是否是机房或实验室
-                    if ($classroom->type == Classroom::TYPE_SPECIAL) {
-                        // 推送给实验中心主任审核
-                        $laboratories = Adminuser::findAll(['role' => Adminuser::LABORATORY]);
-                        foreach ($laboratories as $laboratory) {
-                            $audit = new Audit();
-                            $audit->adminuser_id = $laboratory->id;
-                            $audit->application_id = $id;
-                            $audit->save();
-                        }
-                    }
-                    // 如果是申请停课,则直接推送给教学副院长审核
-                } elseif ($model->type == Application::TYPE_SUSPEND) {
-                    $deans = Adminuser::findAll(['role' => Adminuser::DEAN]);
-                    foreach ($deans as $dean) {
-                        $audit = new Audit();
-                        $audit->adminuser_id = $dean->id;
-                        $audit->application_id = $id;
-                        $audit->save();
-                    }
-                }
+                // 推送给相应管理员
+                $this->push($model);
                 // 提交事务
                 $transaction->commit();
                 Yii::$app->getSession()->setFlash('success', '申请成功, 请等待审核...');
@@ -154,6 +122,64 @@ class ApplicationController extends Controller
         $freeClassroom = Classroom::find()->where(['not in', 'id', $usedClassroom])->all();
 
         return ButtonsWidget::widget(['classrooms'=>$freeClassroom]);
+
+    }
+
+    /**
+     * 根据调整后周次显示课表空闲时间段
+     * @return mixed
+     */
+    public function actionFreeTime()
+    {
+        $request = Yii::$app->request;
+        $apply_week = $request->post('apply_week');
+        $course_id = $request->post('course_id');
+        $apply_sec = $request->post('apply_sec');
+        $teacher_id = $request->post('teacher_id');
+        $adjust_week = $request->post('adjust_week');
+
+//        $apply_week = 4;
+//        $course_id = 3;
+//        $apply_sec = null;
+//        $adjust_week = 5;
+//        $teacher_id = 6;
+
+        $query = Course::find();
+
+        // 如果调整后周次不变, 则排除申请课程本身以便可以选择课程本身的时间段
+        $adjustCourse = null;
+        if ($apply_week == $adjust_week) {
+            $query->andWhere(['not', ['course.id'=>$course_id]]);
+            // 未添加上同一天中未被调整的节次
+            $adjustCourse = Course::findOne($course_id);
+            $adjustCourse->sec = explode(',', $adjustCourse->sec);
+            $apply_sec = explode(',', $apply_sec);
+            $diff = array_diff($adjustCourse->sec, $apply_sec);
+            if (empty($diff)) {
+                $adjustCourse = null;
+            } else {
+                $adjustCourse->sec = implode(',', $diff);
+            }
+
+        }
+
+        $query->andWhere('FIND_IN_SET('.$adjust_week.',week)');
+
+        $queryCopy1 = clone $query;
+        $queryCopy2 = clone $query;
+
+        // 授课教师课程
+        $a = $query->andWhere(['user_id' => $teacher_id])->all();
+        // 班级课程
+        $classes_id = ArrayHelper::getColumn(Course::findOne($course_id)->classes, 'id');
+        $b = $queryCopy1->innerJoinWith('classes')->andWhere(['classes.id'=>$classes_id])->all();
+        // 学生选课
+        $c = $queryCopy2->innerJoinWith('students')->andWhere(['user.class_id'=>$classes_id])->all();
+
+        // 合并课程
+        $courses = ArrayHelper::merge($a, $b, $c, [$adjustCourse]);
+//        VarDumper::dump($courses);die();
+        return CoursesWidget::widget(['courses'=>$courses, 'single'=>true]);
 
     }
 
@@ -216,4 +242,55 @@ class ApplicationController extends Controller
             throw new NotFoundHttpException('所访问页面不存在!');
         }
     }
+
+    /**
+     * @param Application $model
+     * @return bool
+     */
+    protected function push($model) {
+        $id = $model->getAttribute('id');
+        // 如果不是申请停课
+        if ($model->type != Application::TYPE_SUSPEND) {
+            // 推送对应班级辅导审核
+            $course = Course::findOne($model->getAttribute('course_id'));
+            $adminuser_id = array();
+            foreach ($course->classes as $class) {
+                $adminuser_id[] = $class->adminuser_id;
+            }
+            // 未处理班级为空的情况
+            $adminusers = array_unique($adminuser_id);
+            foreach ($adminusers as $adminuser) {
+                $audit = new Audit();
+                $audit->adminuser_id = $adminuser;
+                $audit->application_id = $id;
+                $audit->save();
+            }
+
+            $classroom = Classroom::findOne($model->getAttribute('classroom_id'));
+            // 判断是否是机房或实验室
+            if ($classroom->type == Classroom::TYPE_SPECIAL) {
+                // 推送给实验中心主任审核
+                $laboratories = Adminuser::findAll(['role' => Adminuser::LABORATORY]);
+                foreach ($laboratories as $laboratory) {
+                    $audit = new Audit();
+                    $audit->adminuser_id = $laboratory->id;
+                    $audit->application_id = $id;
+                    $audit->save();
+                }
+            }
+            return true;
+            // 如果是申请停课,则直接推送给教学副院长审核
+        } elseif ($model->type == Application::TYPE_SUSPEND) {
+            $deans = Adminuser::findAll(['role' => Adminuser::DEAN]);
+            foreach ($deans as $dean) {
+                $audit = new Audit();
+                $audit->adminuser_id = $dean->id;
+                $audit->application_id = $id;
+                $audit->save();
+            }
+            return true;
+        }
+        return false;
+    }
+
 }

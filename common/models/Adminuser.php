@@ -219,14 +219,13 @@ class Adminuser extends ActiveRecord implements IdentityInterface
      */
     public function getRoleStr()
     {
-        switch ($this->role) {
-            case self::DIRECTOR : $role = '系主任'; break;
-            case self::DEAN : $role = '教学副院长'; break;
-            case self::LABORATORY : $role = '实验中心主任'; break;
-            case self::COUNSELOR : $role = '辅导员'; break;
-            default : $role = NULL;
-        }
-        return $role;
+        $roleStr = [
+            self::DIRECTOR  => '系主任',
+            self::DEAN      => '教学副院长',
+            self::LABORATORY => '实验中心主任',
+            self::COUNSELOR => '辅导员',
+        ];
+        return $roleStr[$this->role];
     }
 
     /**

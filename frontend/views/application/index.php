@@ -1,12 +1,13 @@
 <?php
 
+use common\models\Audit;
 use yii\helpers\Html;
 use yii\grid\GridView;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = '停调课申请';
+$this->title = '申请列表';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="application-index">
@@ -20,26 +21,28 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
-            'id',
-            'course_id',
-            'user_id',
-            'apply_at',
-            'apply_week',
-            // 'adjust_week',
-            // 'adjust_day',
-            // 'adjust_sec',
-            // 'classroom_id',
-            // 'teacher_id',
-            // 'type',
-            // 'reason',
-            'status',
-            // 'remark',
+            'course.name',
+            'typeStr',
+            ['attribute' => 'statusStr',
+            ],
+            'apply_at:date',
 
-            ['class' => 'yii\grid\ActionColumn'],
+            ['class' => 'yii\grid\ActionColumn',
+                'template' => '{view}',
+            ],
         ],
+        'rowOptions' => function($model, $key, $index, $grid) {
+            $color = [
+                Audit::STATUS_FAILED => 'danger',
+                Audit::STATUS_UNAUDITED => '',
+                Audit::STATUS_PASS => 'success',
+            ];
+            return ['class' => $color[$model->status]];
+        },
         'emptyText'=>'',
         // 'emptyTextOptions'=>['style'=>'color:red;font-weight:bold;font-size:24px'],
         // 'layout' => "{summary}\n{items}\n{pager}"
         'showOnEmpty'=>false,
+
     ]); ?>
 </div>

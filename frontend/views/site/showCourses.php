@@ -36,8 +36,8 @@ $this->registerJs($js);
                 <?= Html::dropDownList('week', null, Course::allWeeks(), [
                         'class'=>"form-control",
                         'id'=>'drop-down-list',
-                        'autocomplete'=>'off']
-                ) ?>
+                        'autocomplete'=>'off',
+                ]) ?>
             </div>
         </div>
 
