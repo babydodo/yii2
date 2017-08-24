@@ -237,8 +237,7 @@ class Application extends \yii\db\ActiveRecord
      */
     public function getAudits()
     {
-        return $this->hasMany(Adminuser::className(), ['id' => 'adminuser_id'])
-                    ->viaTable(Audit::className(), ['application_id' => 'id']);
+        return $this->hasMany(Audit::className(), ['application_id' => 'id']);
     }
 
     /**

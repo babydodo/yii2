@@ -28,7 +28,7 @@ use yii\bootstrap\ActiveForm;
 
     <?= $form->field($model, 'name', ['enableAjaxValidation' => true])->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'type')->dropDownList(Classroom::allTypes()) ?>
+    <?= $form->field($model, 'type')->dropDownList(Classroom::allTypes(), ['prompt' => '请选择']) ?>
 
     <?= $form->field($model, 'amount')->textInput() ?>
 

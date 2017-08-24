@@ -96,8 +96,9 @@ class Audit extends \yii\db\ActiveRecord
         return $this->hasOne(Adminuser::className(), ['id' => 'adminuser_id']);
     }
 
+
     /**
-     * @return \yii\db\ActiveQuery
+     * @return string
      */
     public function getStatusStr()
     {

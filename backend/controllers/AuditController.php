@@ -189,10 +189,12 @@ class AuditController extends Controller
             $application->status = Audit::STATUS_FAILED;
             $application->save(false);
 
-            // 如果审核角色不是教学副院长, 删除其他审核推送
-            if ($model->adminuser->role != Adminuser::DEAN) {
-                Audit::deleteAll(['and', 'application_id'=>$application->id, ['not', ['id'=>$model->id]]]);
-            }
+            // 如果审核角色不是教学副院长, 则删除其他审核推送
+//            if ($model->adminuser->role != Adminuser::DEAN) {
+//                Audit::deleteAll(['and', 'application_id'=>$application->id, ['not', ['id'=>$model->id]]]);
+//            }
+            // 删除其他角色未做审核的审核记录
+            Audit::deleteAll(['and', 'application_id'=>$application->id, 'status'=>Audit::STATUS_UNAUDITED]);
 
             // 提交事务
             $transaction->commit();

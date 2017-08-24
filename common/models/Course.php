@@ -167,13 +167,13 @@ class Course extends \yii\db\ActiveRecord
     public static function allDays()
     {
         return [
-            self::MONDAY => '周一',
-            self::TUESDAY => '周二',
+            self::MONDAY    => '周一',
+            self::TUESDAY   => '周二',
             self::WEDNESDAY => '周三',
-            self::THURSDAY => '周四',
-            self::FRIDAY => '周五',
-            self::SATURDAY => '周六',
-            self::SUNDAY => '周日',
+            self::THURSDAY  => '周四',
+            self::FRIDAY    => '周五',
+            self::SATURDAY  => '周六',
+            self::SUNDAY    => '周日',
         ];
     }
 

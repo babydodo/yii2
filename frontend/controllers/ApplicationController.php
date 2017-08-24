@@ -7,6 +7,7 @@ use common\models\Application;
 use common\models\Audit;
 use common\models\Classroom;
 use common\models\Course;
+use common\widgets\ApplyDetailWidget;
 use common\widgets\ButtonsWidget;
 use common\widgets\CoursesWidget;
 use Yii;
@@ -138,12 +139,6 @@ class ApplicationController extends Controller
         $teacher_id = $request->post('teacher_id');
         $adjust_week = $request->post('adjust_week');
 
-//        $apply_week = 4;
-//        $course_id = 3;
-//        $apply_sec = null;
-//        $adjust_week = 5;
-//        $teacher_id = 6;
-
         $query = Course::find();
 
         // 如果调整后周次不变, 则排除申请课程本身以便可以选择课程本身的时间段
@@ -178,7 +173,6 @@ class ApplicationController extends Controller
 
         // 合并课程
         $courses = ArrayHelper::merge($a, $b, $c, [$adjustCourse]);
-//        VarDumper::dump($courses);die();
         return CoursesWidget::widget(['courses'=>$courses, 'single'=>true]);
 
     }
@@ -190,9 +184,7 @@ class ApplicationController extends Controller
      */
     public function actionView($id)
     {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
+        return ApplyDetailWidget::widget(['application'=>$this->findModel($id)]);
     }
 
     /**
