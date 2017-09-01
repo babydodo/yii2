@@ -13,6 +13,7 @@ use common\widgets\CoursesWidget;
 use Yii;
 use yii\data\ActiveDataProvider;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Html;
 use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -47,9 +48,12 @@ class ApplicationController extends Controller
     public function actionIndex()
     {
         $dataProvider = new ActiveDataProvider([
-            'query' => Application::find()->where(['user_id'=>Yii::$app->user->id]),
-            'pagination' => ['pageSize'=>10], //分页
+            'query' => Application::find()
+                ->where(['user_id'=>Yii::$app->user->id])
+                ->orderBy(['apply_at' => SORT_DESC]),
+            'pagination' => ['pageSize'=>10],   //分页
         ]);
+        $dataProvider->setSort(false);
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
@@ -173,8 +177,9 @@ class ApplicationController extends Controller
 
         // 合并课程
         $courses = ArrayHelper::merge($a, $b, $c, [$adjustCourse]);
-        return CoursesWidget::widget(['courses'=>$courses, 'single'=>true]);
 
+//        return CoursesWidget::widget(['courses'=>$courses, 'single'=>true]);
+        return $this->renderAjax('freeTime', ['courses'=>$courses]);
     }
 
     /**
@@ -184,7 +189,9 @@ class ApplicationController extends Controller
      */
     public function actionView($id)
     {
-        return ApplyDetailWidget::widget(['application'=>$this->findModel($id)]);
+        return $this->renderAjax('view', [
+            'model' => $this->findModel($id),
+        ]);
     }
 
     /**
@@ -243,29 +250,41 @@ class ApplicationController extends Controller
         $id = $model->getAttribute('id');
         // 如果不是申请停课
         if ($model->type != Application::TYPE_SUSPEND) {
-            // 推送对应班级辅导审核
-            $course = Course::findOne($model->getAttribute('course_id'));
-            $adminuser_id = array();
-            foreach ($course->classes as $class) {
-                $adminuser_id[] = $class->adminuser_id;
-            }
-            // 未处理班级为空的情况
-            $adminusers = array_unique($adminuser_id);
-            foreach ($adminusers as $adminuser) {
-                $audit = new Audit();
-                $audit->adminuser_id = $adminuser;
-                $audit->application_id = $id;
-                $audit->save();
-            }
-
+            // step.1 判断地点是否为机房或实验室
             $classroom = Classroom::findOne($model->getAttribute('classroom_id'));
-            // 判断是否是机房或实验室
             if ($classroom->type == Classroom::TYPE_SPECIAL) {
                 // 推送给实验中心主任审核
                 $laboratories = Adminuser::findAll(['role' => Adminuser::LABORATORY]);
                 foreach ($laboratories as $laboratory) {
                     $audit = new Audit();
                     $audit->adminuser_id = $laboratory->id;
+                    $audit->application_id = $id;
+                    $audit->save();
+                }
+            }
+
+            // step.2 推送对应班级辅导审核
+            $course = Course::findOne($model->getAttribute('course_id'));
+            $adminuser_id = array();
+            foreach ($course->classes as $class) {
+                $adminuser_id[] = $class->adminuser_id;
+            }
+            // 如果课程授课班级为空(即公选课等)且地点不为机房
+            if (empty($adminuser_id) && $classroom->type == Classroom::TYPE_ORDINARY) {
+                // 直接推送给教学副院长
+                $deans = Adminuser::findAll(['role' => Adminuser::DEAN]);
+                foreach ($deans as $dean) {
+                    $audit = new Audit();
+                    $audit->adminuser_id = $dean->id;
+                    $audit->application_id = $id;
+                    $audit->save();
+                }
+            } else {
+                // 推送给辅导员
+                $adminusers = array_unique($adminuser_id);
+                foreach ($adminusers as $adminuser) {
+                    $audit = new Audit();
+                    $audit->adminuser_id = $adminuser;
                     $audit->application_id = $id;
                     $audit->save();
                 }

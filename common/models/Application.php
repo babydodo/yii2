@@ -84,31 +84,10 @@ class Application extends \yii\db\ActiveRecord
             [['classroom_id'], 'exist', 'skipOnError' => true, 'targetClass' => Classroom::className(), 'targetAttribute' => ['classroom_id' => 'id']],
             [['teacher_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['teacher_id' => 'id']],
             [['apply_week', 'apply_sec', 'adjust_week', 'adjust_day', 'adjust_sec', 'classroom_id', 'teacher_id'], 'default', 'value' => null],
-
+            // 自定义验证规则
+            ['classroom_id', 'validateClassroom'],
+            ['adjust_sec', 'validateFreeTime'],
         ];
-    }
-
-    /**
-     * 验证教室在所选时间段是否空闲(验证规则)
-     * @param string $attribute
-     * @param array $params
-     */
-    public function validateClassroom($attribute, $params)
-    {
-        if (!$this->hasErrors()) {
-            $secSelected = str_replace(',', '|', $this->adjust_sec);
-            $weekSelected = $this->adjust_week;
-
-            $query = Course::find();
-            $query->andFilterWhere(['not', ['id'=>$this->course_id]]);
-            $query->andWhere(['day'=>$this->adjust_day]);
-            $query->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(".$secSelected.")[^0-9]+'");
-            $query->andWhere("CONCAT(',',`week`,',') REGEXP '[^0-9]+(".$weekSelected.")[^0-9]+'");
-
-            if ($query->andWhere(['classroom_id'=>$this->classroom_id])->one()) {
-                $this->addError($attribute, '教室已被占用');
-            }
-        }
     }
 
     /**
@@ -118,7 +97,6 @@ class Application extends \yii\db\ActiveRecord
      */
     public function validateCourse($attribute, $params)
     {
-
     }
 
     /**
@@ -126,18 +104,17 @@ class Application extends \yii\db\ActiveRecord
      * @param string $attribute
      * @param array $params
      */
-    public function validateTime($attribute, $params)
+    public function validateFreeTime($attribute, $params)
     {
         if (!$this->hasErrors()) {
             $secSelected = str_replace(',', '|', $this->adjust_sec);
-            $weekSelected = $this->adjust_week;
 
             // 筛选选定时间段所有信息
             $query = Course::find();
             $query->andWhere(['not', ['course.id'=>$this->course_id]]);
+            $query->andWhere('FIND_IN_SET('.$this->adjust_week.',week)');
             $query->andWhere(['day' => $this->adjust_day]);
             $query->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(" . $secSelected . ")[^0-9]+'");
-            $query->andWhere('FIND_IN_SET('.$weekSelected.',week)');
 
             $queryCopy1 = clone $query;
             $queryCopy2 = clone $query;
@@ -160,6 +137,28 @@ class Application extends \yii\db\ActiveRecord
     }
 
     /**
+     * 验证教室在所选时间段是否空闲(验证规则)
+     * @param string $attribute
+     * @param array $params
+     */
+    public function validateClassroom($attribute, $params)
+    {
+        if (!$this->hasErrors()) {
+            $secSelected = str_replace(',', '|', $this->adjust_sec);
+
+            $query = Course::find();
+            $query->andWhere(['not', ['id'=>$this->course_id]]);
+            $query->andWhere('FIND_IN_SET('.$this->adjust_week.',week)');
+            $query->andWhere(['day'=>$this->adjust_day]);
+            $query->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(".$secSelected.")[^0-9]+'");
+
+            if ($query->andWhere(['classroom_id'=>$this->classroom_id])->one()) {
+                $this->addError($attribute, '教室已被占用');
+            }
+        }
+    }
+
+    /**
      * @inheritdoc
      */
     public function attributeLabels()
@@ -173,7 +172,7 @@ class Application extends \yii\db\ActiveRecord
             'apply_sec' => '调整前节次',
             'adjust_week' => '调整后周次',
             'adjust_day' => '调整后星期',
-            'adjust_sec' => '调整后节次',
+            'adjust_sec' => '调整后时间段',
             'classroom_id' => '调整后教室',
             'teacher_id' => '调整后授课教师',
             'type' => '类型',
@@ -272,8 +271,8 @@ class Application extends \yii\db\ActiveRecord
     {
         $statusStr = [
             Audit::STATUS_UNAUDITED=>'待审核',
-            Audit::STATUS_FAILED=>'不通过',
-            Audit::STATUS_PASS=>'通过',
+            Audit::STATUS_FAILED=>'未通过',
+            Audit::STATUS_PASS=>'已通过',
         ];
         return $statusStr[$this->status];
     }

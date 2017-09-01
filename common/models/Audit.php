@@ -39,6 +39,7 @@ class Audit extends \yii\db\ActiveRecord
         return [
             [['application_id', 'adminuser_id'], 'required'],
             [['application_id', 'adminuser_id', 'status', 'audit_at'], 'integer'],
+            ['remark', 'trim'],
             [['remark'], 'string', 'max' => 255],
             [['application_id'], 'exist', 'skipOnError' => true, 'targetClass' => Application::className(), 'targetAttribute' => ['application_id' => 'id']],
             [['adminuser_id'], 'exist', 'skipOnError' => true, 'targetClass' => Adminuser::className(), 'targetAttribute' => ['adminuser_id' => 'id']],
@@ -96,7 +97,6 @@ class Audit extends \yii\db\ActiveRecord
         return $this->hasOne(Adminuser::className(), ['id' => 'adminuser_id']);
     }
 
-
     /**
      * @return string
      */
@@ -108,5 +108,19 @@ class Audit extends \yii\db\ActiveRecord
             Audit::STATUS_PASS=>'同意',
         ];
         return $statusStr[$this->status];
+    }
+
+    /**
+     * @param int|null $adminuser_id
+     * @return string
+     */
+    public static function getUnauditedCount($adminuser_id = null)
+    {
+         $count = self::find()
+            ->where(['status' => self::STATUS_UNAUDITED])
+            ->andFilterWhere(['adminuser_id' => $adminuser_id])
+            ->count();
+
+         return $count ? ' <span class="badge">'.$count.'</span>' : null;
     }
 }

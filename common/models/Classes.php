@@ -78,7 +78,7 @@ class Classes extends \yii\db\ActiveRecord
 
     /**
      * @param bool $includeTeacher
-     * @return mixed
+     * @return array
      */
     public static function allClasses($includeTeacher = true)
     {
@@ -86,4 +86,16 @@ class Classes extends \yii\db\ActiveRecord
         return $includeTeacher?$query->column():$query->andWhere(['not', ['id'=>User::TEACHER_CLASS]])->column();
     }
 
+    /**
+     * @param $adminuserID
+     * @return array|null
+     */
+    public static function adminuserClasses($adminuserID = null)
+    {
+        return empty($adminuserID) ? null :
+            self::find()->select(['name','id'])
+                ->where(['adminuser_id'=>$adminuserID])
+                ->indexby('id')
+                ->column();
+    }
 }

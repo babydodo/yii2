@@ -5,6 +5,7 @@
 
 use backend\assets\AppAsset;
 use common\models\Adminuser;
+use common\models\Audit;
 use yii\bootstrap\Modal;
 use yii\helpers\Html;
 use yii\bootstrap\Nav;
@@ -77,6 +78,7 @@ JS;
             ['label' => '班级管理', 'url' => ['/classes/index']],
             ['label' => '教室管理', 'url' => ['/classroom/index']],
             ['label' => '课程管理', 'url' => ['/course/index']],
+            ['label' => '设置', 'url' => ['/site/setting']],
         ];
     }
 
@@ -85,8 +87,17 @@ JS;
         $otherRoles = [Adminuser::DEAN, Adminuser::LABORATORY, Adminuser::COUNSELOR];
         if (in_array(Yii::$app->user->identity->role, $otherRoles, true)) {
             $menuItems = [
-                ['label' => '申请审核', 'url' => ['/audit/index']],
+                '<li>'.
+                Html::a('申请审核'.Audit::getUnauditedCount(Yii::$app->user->id),
+                    ['/audit/index'],
+                    ['class' => 'btn btn-link']
+                ).
+                '</li>',
             ];
+        }
+        // 辅导员角色增加课外活动菜单
+        if (Yii::$app->user->identity->role == Adminuser::COUNSELOR) {
+            $menuItems[] = ['label' => '课外活动', 'url' => ['/activity/index']];
         }
     }
 

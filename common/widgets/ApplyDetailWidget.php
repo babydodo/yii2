@@ -10,10 +10,12 @@ use yii\helpers\Html;
 /**
  * 多按钮小部件
  * @property Application $application
+ * @property boolean $showProgress
  */
 class ApplyDetailWidget extends Widget
 {
     public $application = null;
+    public $showProgress = true;
 
     /**
      * 数据初始化
@@ -44,6 +46,11 @@ class ApplyDetailWidget extends Widget
         $after_time = '第' . $this->application->adjust_week . '周 星期' . $dayStr[$this->application->adjust_day] . ' 第' . $this->application->adjust_sec . '节';
 
         if ($this->application->type == Application::TYPE_ADJUST) {
+
+            $this->application->user_id == $this->application->teacher_id ? $userColor=null:$userColor='class="text-danger"';
+            $before_time == $after_time ? $timeColor=null : $timeColor='class="text-danger"';
+            $this->application->course->classroom_id == $this->application->classroom_id ? $roomColor=null : $roomColor='class="text-danger"';
+
             $table = <<<EOT
             <div class="table-responsive">
                 <table class="table table-bordered">
@@ -69,17 +76,17 @@ class ApplyDetailWidget extends Widget
                         <tr>
                             <th>教师</th>
                             <td>{$this->application->user->nickname}</td>
-                            <td>{$this->application->teacher->nickname}</td>
+                            <td {$userColor}>{$this->application->teacher->nickname}</td>
                         </tr>
                         <tr>
                             <th>时间</th>
                             <td>{$before_time}</td>
-                            <td>{$after_time}</td>
+                            <td {$timeColor}>{$after_time}</td>
                         </tr>
                         <tr>
                             <th>地点</th>
                             <td>{$this->application->course->classroom->name}</td>
-                            <td>{$this->application->classroom->name}</td>
+                            <td {$roomColor}>{$this->application->classroom->name}</td>
                         </tr>
                         <tr>
                             <th>事由</th>
@@ -188,56 +195,38 @@ EOT;
         /*
          * 进度框部分
          */
-        $progress = '<div class="panel panel-default">';
+        $progress='';
+        if ($this->showProgress) {
+            foreach ($this->application->audits as $audit) {
+                $heading = $audit->adminuser->getRoleStr() . ' ' . $audit->adminuser->nickname;
+                $options = ['class' => 'panel'];
+                switch ($audit->status) {
+                    case Audit::STATUS_UNAUDITED:
+                        $heading .= ' 未审核';
+                        Html::addCssClass($options, 'panel-default');
+                        break;
+                    case Audit::STATUS_FAILED:
+                        $heading .= ' 不同意';
+                        Html::addCssClass($options, 'panel-danger');
+                        break;
+                    case Audit::STATUS_PASS:
+                        $heading .= ' 同意';
+                        Html::addCssClass($options, 'panel-success');
+                        break;
+                }
 
-        // 进度列表
-        $progress .= '<div class="text-center panel-heading">审核进度</div>';
-        $progress .= '<ul class="list-group">';
-        foreach ($this->application->audits as $audit) {
-            $content = '';
-            $options = ['class'=>'list-group-item'];
-            switch($this->application->status) {
-                case Audit::STATUS_UNAUDITED:
-                    $content = '等待 '.$audit->adminuser->nickname.' 审核';
-                    break;
-                case Audit::STATUS_FAILED:
-                    $content = $audit->adminuser->nickname.' 不同意';
-                    Html::addCssClass($options, 'list-group-item-danger');
-                    $remark = $audit->remark;
-                    break;
-                case Audit::STATUS_PASS:
-                    $content = $audit->adminuser->nickname.' 已同意';
-                    Html::addCssClass($options, 'list-group-item-success');
-                    break;
+                // 进度框
+                $content = Html::tag('div', $heading, ['class' => 'panel-heading']);
+                // 判断进度框是否附加审核意见
+                if (!empty($audit->remark)) {
+                    $content .= Html::tag('div', $audit->remark, ['class' => 'panel-body']);
+                }
+
+                $progress .= Html::tag('div', $content, $options);
             }
-
-            $progress .= Html::tag('li', $content, $options);
-        }
-        $progress .= '</ul>';
-
-        // 审核不通过理由框
-        if (isset($remark)) {
-            $progress .= '<div class="panel-body"><p>备注: ';
-            $progress .= $remark;
-            $progress .= '</p></div>';
         }
 
-        $progress.='</div>';
-
-        // 撤销申请按钮
-        $button = null;
-        if ($this->application->status == Audit::STATUS_UNAUDITED) {
-            $button = Html::a('撤销申请', ['delete', 'id' => $this->application->id], [
-                'class' => 'btn btn-danger',
-                'data' => [
-                    'confirm' => '你确定要撤销该申请吗?',
-                    'method' => 'post',
-                ],
-            ]);
-            $button = '<p>'.$button.'</p>';
-        }
-
-        return $table.$progress.$button;
+        return $table.$progress;
     }
 
 }

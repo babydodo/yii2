@@ -44,13 +44,13 @@ $js = <<<JS
         if($(this).val()==='2') {
             suspend.show();
             schedule.hide();
-           
+            
         }
        
         if($(this).val()==='3') {
             suspend.hide();
             schedule.show();
-           
+            
         }
        
     });
@@ -60,17 +60,6 @@ $js = <<<JS
         course_info.val('');
         course_id.val('');
         apply_sec.val('');
-        
-        time_info.val('');
-        adjust_day.val('');
-        adjust_sec.val('');
-    });
-    
-    // 调整后周次下拉菜单事件
-    $(adjust_week).on('change', function () {
-        time_info.val('');
-        adjust_day.val('');
-        adjust_sec.val('');
     });
     
     // 显示课表按钮点击事件
@@ -103,7 +92,7 @@ $js = <<<JS
             });
             
         } else {
-            modal.find('.modal-body').html('请先选择需调整周次');
+            modal.find('.modal-body').html('请先选择 需调整周次');
         }
     });
     
@@ -127,6 +116,9 @@ $js = <<<JS
             // modal表格每个单元格点击事件
             let secArray = [];
             let day = '';
+            
+            let adjustSec = '';
+            let timeStr = '';
             $('.modal-body').off('click').on('click', 'td', function() {  
                 if ($(this).text()==='') {
                     // 限制选择的时段在同一天
@@ -142,41 +134,47 @@ $js = <<<JS
                         secArray.push($(this).data('sec'));
                     }
                     
-                    let adjustSec = secArray.sort( function(a, b){return a-b;} ).toString();
-                    let timeStr = adjustSec===''?'':'星期' + dayArray[day] + '('+adjustSec+')节';
-                 
-                    time_info.val(timeStr);
-                    adjust_day.val(day);
-                    adjust_sec.val(adjustSec);
-                    
+                    adjustSec = secArray.sort( function(a, b){return a-b;} ).toString();
+                    timeStr = adjustSec===''?'':'星期' + dayArray[day] + '('+adjustSec+')节';
                 }
             });
             
+            // 确定按钮点击事件
+            $('.modal-body').on('click', '#btn-confirm', function() {
+                time_info.val(timeStr);
+                adjust_day.val(day);
+                adjust_sec.val(adjustSec);
+            });
+            
         } else {
-            modal.find('.modal-body').html('请先选择调整课程与周次');
+            modal.find('.modal-body').html('请先选择 调整课程 与 周次');
         }
     });
     
     // 空闲教室按钮点击事件
     $('#free-classroom').on('click', function () {
         modal.find('.modal-title').html('空闲教室');
-        $.post('{$freeClassroomUrl}', 
-            {
-                course_id:course_id.val(),
-                week:adjust_week.val(),
-                day:adjust_day.val(),
-                sec:adjust_sec.val(),
-            },
-            function (data) {
-                modal.find('.modal-body').html(data);
-            }
-        );
-        
-        // modal每个按钮点击事件
-        $('.modal-body').off('click').on('click', 'button', function() {
-            $('#application-classroom_id').val($(this).text());    
-            modal.modal('hide');
-        });
+        if (adjust_week.val() && adjust_sec.val()) {
+            $.post('{$freeClassroomUrl}',
+                {
+                    course_id:course_id.val(),
+                    week:adjust_week.val(),
+                    day:adjust_day.val(),
+                    sec:adjust_sec.val(),
+                },
+                function (data) {
+                    modal.find('.modal-body').html(data);
+                }
+            );
+            
+            // modal每个按钮点击事件
+            $('.modal-body').off('click').on('click', 'button', function() {
+                $('#application-classroom_id').val($(this).text());    
+                modal.modal('hide');
+            });
+        } else {
+            modal.find('.modal-body').html('请先选择 调整后周次 与 时间段');
+        }
     });
     
     // 事由快捷选择下拉菜单
@@ -201,7 +199,10 @@ $this->registerJs($js);
 
         <div id="adjust-suspend">
 
-            <?= $form->field($model, 'apply_week')->dropDownList(Course::allWeeks(), ['prompt'=>'请选择']) ?>
+            <?= $form->field($model, 'apply_week')->dropDownList(Course::allWeeks(), [
+                    'prompt'=>'请选择',
+                    'autocomplete'=>'off'
+            ]) ?>
 
             <?php $courseButton = Html::a('选择课程', '#', [
                 'id'=>'display-courses',
@@ -239,7 +240,10 @@ $this->registerJs($js);
 
             <?= $form->field($model, 'teacher_id')->dropDownList(User::allTeachers()) ?>
 
-            <?= $form->field($model, 'adjust_week')->dropDownList(Course::allWeeks(), ['prompt'=>'请选择']) ?>
+            <?= $form->field($model, 'adjust_week')->dropDownList(Course::allWeeks(), [
+                    'prompt'=>'请选择',
+                    'autocomplete'=>'off'
+            ]) ?>
 
             <?php $freeTimeButton = Html::a('选择时间段', '#', [
                 'id'=>'free-time',
@@ -301,7 +305,10 @@ $this->registerJs($js);
                     <div class='input-group'>
                         {input}
                         <div class='input-group-btn'>
-                            <button type='button' class='btn btn-default dropdown-toggle' data-toggle='dropdown'>快捷选择<span class='caret'></span></button>
+                            <button type='button' class='btn btn-default dropdown-toggle' data-toggle='dropdown'>
+                                快捷选择
+                                <span class='caret'></span>
+                            </button>
                             <ul class='dropdown-menu dropdown-menu-right'>
                                 <li><a href='#'>因公出差</a></li>
                                 <li><a href='#'>因病请假</a></li>

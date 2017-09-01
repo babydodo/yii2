@@ -8,7 +8,7 @@ use common\models\Classroom;
 use common\widgets\ButtonsWidget;
 use Yii;
 use common\models\Course;
-use backend\models\CourseSearch;
+use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -17,9 +17,9 @@ use yii\web\Response;
 use yii\widgets\ActiveForm;
 
 /**
- * 课程管理控制器
+ * 课外活动管理控制器
  */
-class CourseController extends Controller
+class ActivityController extends Controller
 {
     /**
      * @inheritdoc
@@ -34,7 +34,7 @@ class CourseController extends Controller
                         'allow' => true,
                         'matchCallback' => function ($rule, $action) {
                             if (!Yii::$app->user->isGuest) {
-                                return Yii::$app->user->identity->role == Adminuser::DIRECTOR ? true : false;
+                                return Yii::$app->user->identity->role == Adminuser::COUNSELOR ? true : false;
                             }
                             return false;
                         },
@@ -51,22 +51,26 @@ class CourseController extends Controller
     }
 
     /**
-     * 列出所有课程信息
+     * 列出辅导员安排的所有课外活动信息
      * @return mixed
      */
     public function actionIndex()
     {
-        $searchModel = new CourseSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $dataProvider = new ActiveDataProvider([
+            'query' => Course::find()
+                ->where(['number'=>Yii::$app->user->id])
+                ->orderBy(['id' => SORT_DESC]),
+            'pagination' => ['pageSize'=>10],   //分页
+        ]);
+        $dataProvider->setSort(false);
 
         return $this->render('index', [
-            'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
     }
 
     /**
-     * 新增课程
+     * 新增课外活动
      * @return mixed
      */
     public function actionCreate()
@@ -75,6 +79,8 @@ class CourseController extends Controller
 
         // 块赋值验证
         $load = $model->load(Yii::$app->request->post());
+        $model->number = Yii::$app->user->id;
+        $model->user_id = Yii::$app->user->id;
 
         if (Yii::$app->request->isAjax) {
             Yii::$app->response->format = Response::FORMAT_JSON;
@@ -91,7 +97,7 @@ class CourseController extends Controller
     }
 
     /**
-     * 更新课程信息
+     * 更新课外活动信息
      * @param integer $id
      * @return mixed
      */
@@ -120,7 +126,7 @@ class CourseController extends Controller
     }
 
     /**
-     * 删除课程信息
+     * 删除课外活动信息
      * @param integer $id
      * @return mixed
      */

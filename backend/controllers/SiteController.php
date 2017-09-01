@@ -1,6 +1,7 @@
 <?php
 namespace backend\controllers;
 
+use backend\models\ExcelUpload;
 use backend\models\ResetpwdForm;
 use common\models\Adminuser;
 use Yii;
@@ -10,6 +11,7 @@ use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use backend\models\LoginForm;
 use yii\web\Response;
+use yii\web\UploadedFile;
 
 /**
  * 后台站点控制器
@@ -26,7 +28,7 @@ class SiteController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions' => ['login', 'error'],
+                        'actions' => ['login', 'error', 'setting'],
                         'allow' => true,
                     ],
                     [
@@ -107,6 +109,7 @@ class SiteController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->goBack();
         } else {
+            $this->layout = false; //不使用布局
             return $this->render('login', [
                 'model' => $model,
             ]);
@@ -123,4 +126,34 @@ class SiteController extends Controller
 
         return $this->goHome();
     }
+
+    /**
+     * 设置
+     * @return string
+     */
+    public function actionSetting()
+    {
+        $model = new ExcelUpload();
+        $uploadSuccessPath = '';
+        if (Yii::$app->request->isPost) {
+            $model->file = UploadedFile::getInstance($model, 'file');
+            // 文件上传存放的目录
+            $dir = '../../uploads/'.date('Ymd');
+            if (!is_dir($dir))
+                mkdir($dir);
+            if ($model->validate()) {
+                // 文件名
+                $fileName = date('His').$model->file->baseName . '.' . $model->file->extension;
+                $dir = $dir.'/'. $fileName;
+                // 文件编码未解决
+                $model->file->saveAs($dir);
+                $uploadSuccessPath = '/uploads/'.date('Ymd').'/'.$fileName;
+            }
+        }
+        return $this->render('setting', [
+            'model' => $model,
+            'uploadSuccessPath' => $uploadSuccessPath,
+        ]);
+    }
+
 }

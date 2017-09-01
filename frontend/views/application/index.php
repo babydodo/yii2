@@ -40,8 +40,7 @@ $this->registerJs($js);
 
             'course.name',
             'typeStr',
-            ['attribute' => 'statusStr',
-            ],
+            'statusStr',
             'apply_at:date',
 
             ['class' => 'yii\grid\ActionColumn',
