@@ -17,6 +17,7 @@ class LoginForm extends Model
     private $_user;
 
     /**
+     * 属性验证规则
      * @inheritdoc
      */
     public function rules()
@@ -43,9 +44,8 @@ class LoginForm extends Model
 
     /**
      * 验证密码
-     *
-     * @param string $attribute the attribute currently being validated
-     * @param array $params the additional name-value pairs given in the rule
+     * @param string $attribute
+     * @param array $params
      */
     public function validatePassword($attribute, $params)
     {
@@ -58,9 +58,8 @@ class LoginForm extends Model
     }
 
     /**
-     * 根据输入的用户名和密码登陆
-     *
-     * @return bool whether the user is logged in successfully
+     * 登陆
+     * @return bool
      */
     public function login()
     {
@@ -73,7 +72,6 @@ class LoginForm extends Model
 
     /**
      * 根据username找到Adminuser表对应记录
-     *
      * @return Adminuser|null
      */
     protected function getUser()

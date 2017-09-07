@@ -7,7 +7,7 @@ use yii\data\ActiveDataProvider;
 use common\models\Adminuser;
 
 /**
- * 管理员管理搜索过滤类
+ * Adminuser模型搜索过滤类
  */
 class AdminuserSearch extends Adminuser
 {
@@ -33,29 +33,28 @@ class AdminuserSearch extends Adminuser
     }
 
     /**
-     * 根据过滤条件提供数据
+     * 根据过滤条件查询数据
      * @param array $params
      * @return ActiveDataProvider
      */
     public function search($params)
     {
-        $query = Adminuser::find()->orderBy('role');
-
-        // 此处可添加初始表格限制条件
+        $query = Adminuser::find()->orderBy('role'); //排序
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => ['pageSize'=>10], //分页
         ]);
 
+        // 块赋值查询条件
         $this->load($params);
 
-        // 验证输入数据是否符合规则
+        // 验证不通过时返回的结果
         if (!$this->validate()) {
             return $dataProvider;
         }
 
-        // 表格过滤条件
+        // 查询条件
         $query->andFilterWhere(['role' => $this->role]);
         $query->andFilterWhere(['like', 'username', $this->username])
             ->andFilterWhere(['like', 'nickname', $this->nickname])

@@ -4,9 +4,8 @@ namespace backend\models;
 use common\models\Adminuser;
 use yii\base\Model;
 
-
 /**
- * 新增管理员表单模型
+ * 新增Adminuser模型表单
  */
 class CreateAdminuserForm extends Model
 {
@@ -18,6 +17,7 @@ class CreateAdminuserForm extends Model
     public $email;
 
     /**
+     * 属性验证规则
      * @inheritdoc
      */
     public function rules()
@@ -25,16 +25,25 @@ class CreateAdminuserForm extends Model
         return [
             ['username', 'trim'],
             ['username', 'required'],
-            ['username', 'unique', 'targetClass' => '\common\models\Adminuser', 'message' => '职工号已存在！'],
-            ['username', 'string', 'min' => 2, 'max' => 255],
+            ['username', 'unique', 'targetClass' => Adminuser::className(), 'message' => '{attribute}已存在！'],
+            ['username', 'string', 'min' => 5, 'max' => 255],
 
+            ['nickname', 'trim'],
             ['nickname', 'required'],
             ['nickname', 'string', 'max' => 128],
 
             ['role', 'required'],
             ['role', 'integer'],
+            ['role', 'in', 'range' => [
+                    Adminuser::DIRECTOR,
+                    Adminuser::DEAN,
+                    Adminuser::LABORATORY,
+                    Adminuser::COUNSELOR,
+                ]
+            ],
 
             ['email', 'email'],
+            ['email', 'default', 'value' => null],
 
             ['password', 'required'],
             ['password', 'string', 'min' => 5],
@@ -62,8 +71,7 @@ class CreateAdminuserForm extends Model
 
     /**
      * 新增一个管理员
-     *
-     * @return Adminuser|null the saved model or null if saving fails
+     * @return Adminuser|null
      */
     public function createAdminuser()
     {

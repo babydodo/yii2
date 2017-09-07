@@ -26,6 +26,7 @@ class CourseController extends Controller
      */
     public function behaviors()
     {
+        // 控制器只允许系主任角色访问
         return [
             'access' => [
                 'class' => AccessControl::className(),
@@ -52,7 +53,7 @@ class CourseController extends Controller
 
     /**
      * 列出所有课程信息
-     * @return mixed
+     * @return string
      */
     public function actionIndex()
     {
@@ -67,20 +68,22 @@ class CourseController extends Controller
 
     /**
      * 新增课程
-     * @return mixed
+     * @return array|Response|string
      */
     public function actionCreate()
     {
         $model = new CourseForm();
 
-        // 块赋值验证
+        // 块赋值
         $load = $model->load(Yii::$app->request->post());
 
+        // Ajax验证
         if (Yii::$app->request->isAjax) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             return ActiveForm::validate($model);
         }
 
+        // 保存
         if ($load && $model->saveCourse()) {
             return $this->redirect(['index']);
         } else {
@@ -93,7 +96,7 @@ class CourseController extends Controller
     /**
      * 更新课程信息
      * @param integer $id
-     * @return mixed
+     * @return array|Response|string
      */
     public function actionUpdate($id)
     {
@@ -102,14 +105,16 @@ class CourseController extends Controller
         $model->classroom_id = Classroom::findOne($model->classroom_id)->getAttribute('name');
         $model->classID = $model->getClasses()->column();
 
-        // 块赋值验证
+        // 块赋值
         $load = $model->load(Yii::$app->request->post());
 
+        // Ajax验证
         if (Yii::$app->request->isAjax) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             return ActiveForm::validate($model);
         }
 
+        // 保存
         if ($load && $model->saveCourse($id)) {
             return $this->redirect(['index']);
         } else {
@@ -122,18 +127,17 @@ class CourseController extends Controller
     /**
      * 删除课程信息
      * @param integer $id
-     * @return mixed
+     * @return Response
      */
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
         return $this->redirect(['index']);
     }
 
     /**
      * 根据时间查询空闲教室
-     * @return mixed
+     * @return string|ButtonsWidget
      */
     public function actionFreeClassroom()
     {
@@ -162,10 +166,9 @@ class CourseController extends Controller
 
     /**
      * 根据id找到对应课程记录
-     * 如果记录不存在则跳转到404页面
      * @param integer $id
-     * @return Course the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return Course
+     * @throws NotFoundHttpException 如果记录不存在则跳转到404页面
      */
     protected function findModel($id)
     {

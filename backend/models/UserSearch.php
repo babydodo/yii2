@@ -7,7 +7,9 @@ use yii\data\ActiveDataProvider;
 use common\models\User;
 
 /**
- * 用户管理搜索过滤类
+ * User模型搜索过滤类
+ *
+ * @property string className
  */
 class UserSearch extends User
 {
@@ -42,24 +44,23 @@ class UserSearch extends User
     }
 
     /**
-     * 根据过滤条件提供数据
+     * 根据过滤条件查询数据
      * @param array $params
      * @return ActiveDataProvider
      */
     public function search($params)
     {
-        $query = User::find()->orderBy('class_id');
-
-        // 此处可添加初始表格限制条件
+        $query = User::find()->orderBy('class_id'); //排序
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'pagination' => ['pageSize'=>10], //分页
+            'pagination' => ['pageSize'=>10],   //分页
         ]);
 
+        // 块赋值查询条件
         $this->load($params);
 
-        // 验证输入数据是否符合规则
+        // 验证不通过时返回的结果
         if (!$this->validate()) {
             return $dataProvider;
         }
@@ -67,7 +68,7 @@ class UserSearch extends User
         // 连接classes表
         $query->joinWith('class');
 
-        // 表格过滤条件
+        // 查询条件
         $query->andFilterWhere(['like', 'username', $this->username])
             ->andFilterWhere(['like', 'nickname', $this->nickname])
             ->andFilterWhere(['like','classes.name',$this->className]);

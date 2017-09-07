@@ -36,13 +36,16 @@ $this->registerJs($js);
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'columns' => [
+            // 序号列
             ['class' => 'yii\grid\SerialColumn'],
 
+            // 内容列
             'course.name',
             'typeStr',
             'statusStr',
             'apply_at:date',
 
+            // 动作列
             ['class' => 'yii\grid\ActionColumn',
                 'template' => '{view}',
                 'buttons' => [
@@ -59,6 +62,8 @@ $this->registerJs($js);
                 ],
             ],
         ],
+
+        // 行样式设置
         'rowOptions' => function($model, $key, $index, $grid) {
             $color = [
                 Audit::STATUS_FAILED => 'danger',
@@ -67,10 +72,8 @@ $this->registerJs($js);
             ];
             return ['class' => $color[$model->status]];
         },
-        'emptyText'=>'',
-        // 'emptyTextOptions'=>['style'=>'color:red;font-weight:bold;font-size:24px'],
-        // 'layout' => "{summary}\n{items}\n{pager}"
-        'showOnEmpty'=>false,
 
+        'emptyText'=>'',
+        'showOnEmpty'=>false,
     ]); ?>
 </div>

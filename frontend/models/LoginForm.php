@@ -17,6 +17,7 @@ class LoginForm extends Model
     private $_user;
 
     /**
+     * 属性验证规则
      * @inheritdoc
      */
     public function rules()
@@ -27,6 +28,21 @@ class LoginForm extends Model
             // 根据validatePassword()方法验证password
             ['password', 'validatePassword'],
         ];
+    }
+
+    /**
+     * 验证密码(验证规则)
+     * @param string $attribute
+     * @param array $params
+     */
+    public function validatePassword($attribute, $params)
+    {
+        if (!$this->hasErrors()) {
+            $user = $this->getUser();
+            if (!$user || !$user->validatePassword($this->password)) {
+                $this->addError($attribute, '用户名或密码错误');
+            }
+        }
     }
 
     /**
@@ -42,25 +58,8 @@ class LoginForm extends Model
     }
 
     /**
-     * 验证密码
-     *
-     * @param string $attribute the attribute currently being validated
-     * @param array $params the additional name-value pairs given in the rule
-     */
-    public function validatePassword($attribute, $params)
-    {
-        if (!$this->hasErrors()) {
-            $user = $this->getUser();
-            if (!$user || !$user->validatePassword($this->password)) {
-                $this->addError($attribute, '用户名或密码错误');
-            }
-        }
-    }
-
-    /**
-     * 根据输入的用户名和密码登陆
-     *
-     * @return bool whether the user is logged in successfully
+     * 登陆
+     * @return bool
      */
     public function login()
     {
@@ -73,7 +72,6 @@ class LoginForm extends Model
 
     /**
      * 根据username找到User表对应记录
-     *
      * @return User|null
      */
     protected function getUser()

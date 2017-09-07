@@ -1,7 +1,6 @@
 <?php
 
 namespace common\models;
-use Yii;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -48,6 +47,7 @@ class Application extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
+            ['reason', 'trim'],
             [['course_id', 'user_id', 'type', 'reason'], 'required'],
             ['apply_week', 'required', 'when' => function ($model) {
                 return $model->type != self::TYPE_SCHEDULE;
@@ -77,6 +77,9 @@ class Application extends \yii\db\ActiveRecord
             ['adjust_sec', 'filter', 'filter' => function ($value) {
                 return is_array($value)?implode(',', $value):$value;
             }],
+            ['adjust_day', 'in', 'range' => [1, 2, 3, 4, 5, 6, 7] ],
+            ['type', 'in', 'range' => [self::TYPE_ADJUST, self::TYPE_SUSPEND, self::TYPE_SCHEDULE] ],
+            ['status', 'in', 'range' => [Audit::STATUS_FAILED, Audit::STATUS_UNAUDITED, Audit::STATUS_PASS] ],
             [['apply_week', 'apply_sec', 'adjust_week', 'adjust_sec'], 'string', 'max' => 64],
             [['reason'], 'string', 'max' => 255],
             [['course_id'], 'exist', 'skipOnError' => true, 'targetClass' => Course::className(), 'targetAttribute' => ['course_id' => 'id']],
@@ -107,32 +110,80 @@ class Application extends \yii\db\ActiveRecord
     public function validateFreeTime($attribute, $params)
     {
         if (!$this->hasErrors()) {
+            // 如果是停课, 则无需验证
+            if ($this->type == self::TYPE_SUSPEND) {
+                return;
+            }
+
             $secSelected = str_replace(',', '|', $this->adjust_sec);
+            $classID = ArrayHelper::getColumn(Course::findOne($this->course_id)->classes, 'id');
+            $userID = ArrayHelper::getColumn(Course::findOne($this->course_id)->students, 'id');
 
-            // 筛选选定时间段所有信息
-            $query = Course::find();
-            $query->andWhere(['not', ['course.id'=>$this->course_id]]);
-            $query->andWhere('FIND_IN_SET('.$this->adjust_week.',week)');
-            $query->andWhere(['day' => $this->adjust_day]);
-            $query->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(" . $secSelected . ")[^0-9]+'");
+            // part.1 验证Course表
+            $course = Course::find()
+                ->andWhere(['not', ['course.id'=>$this->course_id]])
+                ->andWhere('FIND_IN_SET('.$this->adjust_week.',week)')
+                ->andWhere(['day' => $this->adjust_day])
+                ->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(" . $secSelected . ")[^0-9]+'");
 
-            $queryCopy1 = clone $query;
-            $queryCopy2 = clone $query;
+            $courseCopy1 = clone $course;
+            $courseCopy2 = clone $course;
 
             // 验证教师是否空闲
-            if ($query->andWhere(['user_id' => $this->teacher_id])->one()) {
+            if ($course->andWhere(['user_id' => $this->teacher_id])->one()) {
                 $this->addError($attribute, '该教师在此时间段有课');
-            } else {
                 // 验证班级是否空闲
-                $classID = ArrayHelper::getColumn(Course::findOne($this->course_id)->classes, 'id');
-                if ($queryCopy1->innerJoinWith('classes')->andWhere(['classes.id'=>$classID])->one()) {
-                    $this->addError($attribute, '所选班级在此时间段有课');
-                    // 验证对应班级所有学生是否空闲
-                } elseif ($queryCopy2->innerJoinWith('students')->andWhere(['user.class_id'=>$classID])->one()) {
-                    $this->addError($attribute, '所选班级有学生在此时间段有课');
+            } elseif ($courseCopy1->innerJoinWith('classes')->andWhere(['classes.id'=>$classID])->one()) {
+                    $this->addError($attribute, '班级在此时间段有课');
+            } else {
+                // 验证对应班级所有学生是否空闲
+                if ($courseCopy2->innerJoinWith('students')->andWhere(['or', ['user.class_id'=>$classID], ['user.id' => $userID]])->one()) {
+                    $this->addError($attribute, '班级有学生在此时间段有课');
                 }
             }
 
+            // part.2 验证Application表
+            $application = self::find()
+                ->andWhere(['status' => Audit::STATUS_UNAUDITED])
+                ->andWhere('FIND_IN_SET('.$this->adjust_week.',adjust_week)')
+                ->andWhere(['adjust_day'=>$this->adjust_day])
+                ->andWhere("CONCAT(',',`adjust_sec`,',') REGEXP '[^0-9]+(".$secSelected.")[^0-9]+'");
+
+            $applicationCopy = clone $application;
+            $course_id = $applicationCopy->select('course_id')->column();
+
+            // 判断教师是否被申请排课
+            if ($application->andWhere(['teacher_id' => $this->teacher_id])->one()) {
+                $this->addError($attribute, '授课教师在此时间段正在被申请排课');
+            } elseif (!empty($course_id)){
+                // 判断班级是否正被申请排课
+                if (Course::find()
+                        ->innerJoinWith('classes')
+                        ->andWhere(['classes.id'=>$classID, 'course.id'=>$course_id])
+                        ->one()
+                ) {
+                    $this->addError($attribute, '班级在此时间段正在被申请排课');
+                    // 判断班级是否有学生正被申请排课
+                } elseif (Course::find()
+                            ->innerJoinWith('students')
+                            ->andWhere(['course.id'=>$course_id])
+                            ->andWhere(['or', ['user.class_id'=>$classID], ['user.id' => $userID]])
+                            ->one()
+                ) {
+                    $this->addError($attribute, '班级内有学生在此时间段正在被申请排课');
+                }
+            }
+
+            // part.3 验证Activity表
+            $activity = Activity::find()
+                ->andWhere('FIND_IN_SET('.$this->adjust_week.',week)')
+                ->andWhere(['day'=>$this->adjust_day])
+                ->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(".$secSelected.")[^0-9]+'");
+            // 判断班级是否有活动安排
+            $classSelected = implode('|', $classID);
+            if($activity->andWhere("CONCAT(',',`classes_ids`,',') REGEXP '[^0-9]+(".$classSelected.")[^0-9]+'")->one()) {
+                $this->addError($attribute, '所选班级在此时间段已有活动安排');
+            }
         }
     }
 
@@ -144,16 +195,42 @@ class Application extends \yii\db\ActiveRecord
     public function validateClassroom($attribute, $params)
     {
         if (!$this->hasErrors()) {
+            // 如果是停课, 则无需验证
+            if ($this->type == self::TYPE_SUSPEND) {
+                return;
+            }
+
             $secSelected = str_replace(',', '|', $this->adjust_sec);
 
-            $query = Course::find();
-            $query->andWhere(['not', ['id'=>$this->course_id]]);
-            $query->andWhere('FIND_IN_SET('.$this->adjust_week.',week)');
-            $query->andWhere(['day'=>$this->adjust_day]);
-            $query->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(".$secSelected.")[^0-9]+'");
-
-            if ($query->andWhere(['classroom_id'=>$this->classroom_id])->one()) {
+            // part.1 验证Course表
+            $course = Course::find()
+                ->andWhere(['not', ['id'=>$this->course_id]])
+                ->andWhere('FIND_IN_SET('.$this->adjust_week.',week)')
+                ->andWhere(['day'=>$this->adjust_day])
+                ->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(".$secSelected.")[^0-9]+'");
+            if ($course->andWhere(['classroom_id'=>$this->classroom_id])->one()) {
                 $this->addError($attribute, '教室已被占用');
+            } else {
+
+                // part.2 验证Application表
+                $application = self::find()
+                    ->andWhere(['status' => Audit::STATUS_UNAUDITED])
+                    ->andWhere('FIND_IN_SET('.$this->adjust_week.',adjust_week)')
+                    ->andWhere(['adjust_day'=>$this->adjust_day])
+                    ->andWhere("CONCAT(',',`adjust_sec`,',') REGEXP '[^0-9]+(".$secSelected.")[^0-9]+'");
+                if ($application->andWhere(['classroom_id'=>$this->classroom_id])->one()) {
+                    $this->addError($attribute, '教室正在被申请使用');
+                } else {
+
+                    // part.3 验证Activity表
+                    $activity = Activity::find()
+                        ->andWhere('FIND_IN_SET('.$this->adjust_week.',week)')
+                        ->andWhere(['day'=>$this->adjust_day])
+                        ->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(".$secSelected.")[^0-9]+'");
+                    if ($activity->andWhere(['classroom_id'=>$this->classroom_id])->one()) {
+                        $this->addError($attribute, '教室已被占用');
+                    }
+                }
             }
         }
     }
@@ -192,6 +269,18 @@ class Application extends \yii\db\ActiveRecord
         if (parent::beforeSave($insert)) {
             if ($insert) {
                 $this->apply_at = time();
+                // 停课
+                if ($this->type == self::TYPE_SUSPEND) {
+                    $this->teacher_id = null;
+                    $this->adjust_week = null;
+                    $this->adjust_day = null;
+                    $this->adjust_sec = null;
+                    $this->classroom_id = null;
+                // 排课
+                } elseif ($this->type == self::TYPE_SCHEDULE) {
+                    $this->apply_week = null;
+                    $this->apply_sec = null;
+                }
             }
             return true;
         } else {

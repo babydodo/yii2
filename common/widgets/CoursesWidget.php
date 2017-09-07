@@ -1,6 +1,8 @@
 <?php
 namespace common\widgets;
 
+use common\models\Activity;
+use common\models\Application;
 use common\models\Course;
 use yii\base\Widget;
 use yii\helpers\Html;
@@ -8,13 +10,17 @@ use yii\helpers\Html;
 /**
  * 课程表格小部件
  *
+ * @property Application[] $applications
+ * @property Activity[] $activities
  * @property Course[] $courses
  * @property boolean $single 是否合并单元格, 默认不合并
  * @property array $tbody
  */
 class CoursesWidget extends Widget
 {
-    public $courses = null;
+    public $applications = [];
+    public $activities = [];
+    public $courses = [];
     public $single = false;
 
     protected $tbody;
@@ -79,46 +85,118 @@ class CoursesWidget extends Widget
             </thead>
 EOT;
 
-        foreach ($this->courses as $course) {
-            // 格式化sec属性, 分组
-            if (!empty($course->sec)) {
-            $course->sec = $this->filterSec($course->sec);
-            // 遍历
-            foreach ($course->sec as $sec) {
-                // $sec 节的具体数组单元
-                foreach ($sec as $key => $value) {
-                    if ($this->single) {
-                        // 填充课程对应单元格的内容(不合并)
-                        $this->tbody[$value][$course->day] = Html::tag('td', '#', [
-                            'style' => [
-                                'vertical-align' => 'middle',
-                                'text-align'=>'center',
-                            ],
-                            'class' => 'danger',
-                            'data-day' => $course->day,
-                            'data-sec' => $value,
-                        ]);
-                    } else {
-                        // 填充课程对应单元格的内容(合并)
-                        if ($key == 0) {
-                            $teacher = $course->user->getAttribute('nickname');
-                            $classroom = $course->classroom->getAttribute('name');
-                            $content = $course->name . '<br />@' . $classroom . ' @' . $teacher;
-                            $this->tbody[$value][$course->day] = Html::tag('td', $content, [
-                                'style' => ['vertical-align' => 'middle'],
-                                'class' => 'info',
-                                'data-id' => $course->id,
-                                'data-day' => $course->day,
-                                'data-sec' => $value,
-                                'rowspan' => count($sec),
+        // 渲染Application表数据
+        if ($this->single) {
+            foreach ($this->applications as $application) {
+                // 格式化sec属性, 分组
+                if (!empty($application->adjust_sec)) {
+                    $application->adjust_sec = $this->filterSec($application->adjust_sec);
+                    // 遍历
+                    foreach ($application->adjust_sec as $sec) {
+                        // $sec 节的具体数组单元
+                        foreach ($sec as $key => $value) {
+                            // 填充课程对应单元格的内容(不合并)
+                            $this->tbody[$value][$application->adjust_day] = Html::tag('td', '#', [
+                                'style' => [
+                                    'vertical-align' => 'middle',
+                                    'text-align'=>'center',
+                                ],
+                                'class' => 'danger',
+//                                'data-day' => $application->adjust_day,
+//                                'data-sec' => $value,
                             ]);
-                        } else {
-                            // 删除rowspan后多出tr标签
-                            $this->tbody[$value][$course->day] = null;
                         }
                     }
                 }
-            } }
+            }
+        }
+
+        // 渲染Activity表数据
+        foreach ($this->activities as $activity) {
+            // 格式化sec属性, 分组
+            if (!empty($activity->sec)) {
+                $activity->sec = $this->filterSec($activity->sec);
+                // 遍历
+                foreach ($activity->sec as $sec) {
+                    // $sec 节的具体数组单元
+                    foreach ($sec as $key => $value) {
+                        if ($this->single) {
+                            // 填充课程对应单元格的内容(不合并)
+                            $this->tbody[$value][$activity->day] = Html::tag('td', '#', [
+                                'style' => [
+                                    'vertical-align' => 'middle',
+                                    'text-align'=>'center',
+                                ],
+                                'class' => 'danger',
+//                                'data-day' => $activity->day,
+//                                'data-sec' => $value,
+                            ]);
+                        } else {
+                            // 填充课程对应单元格的内容(合并)
+                            if ($key == 0) {
+                                $counselor = $activity->adminuser->getAttribute('nickname');
+                                $classroom = $activity->classroom->getAttribute('name');
+                                $content = $activity->name . '<br />@' . $classroom . ' @' . $counselor;
+                                $this->tbody[$value][$activity->day] = Html::tag('td', $content, [
+                                    'style' => ['vertical-align' => 'middle'],
+                                    'class' => 'warning',
+//                                    'data-id' => $activity->id,
+//                                    'data-day' => $activity->day,
+//                                    'data-sec' => $value,
+                                    'rowspan' => count($sec),
+                                ]);
+                            } else {
+                                // 删除rowspan后多出tr标签
+                                $this->tbody[$value][$activity->day] = null;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 渲染Course表数据
+        foreach ($this->courses as $course) {
+            // 格式化sec属性, 分组
+            if (!empty($course->sec)) {
+                $course->sec = $this->filterSec($course->sec);
+                // 遍历
+                foreach ($course->sec as $sec) {
+                    // $sec 节的具体数组单元
+                    foreach ($sec as $key => $value) {
+                        if ($this->single) {
+                            // 填充课程对应单元格的内容(不合并)
+                            $this->tbody[$value][$course->day] = Html::tag('td', '#', [
+                                'style' => [
+                                    'vertical-align' => 'middle',
+                                    'text-align'=>'center',
+                                ],
+                                'class' => 'danger',
+                                'data-day' => $course->day,
+                                'data-sec' => $value,
+                            ]);
+                        } else {
+                            // 填充课程对应单元格的内容(合并)
+                            if ($key == 0) {
+                                $teacher = $course->user->getAttribute('nickname');
+                                $classroom = $course->classroom->getAttribute('name');
+                                $content = $course->name . '<br />@' . $classroom . ' @' . $teacher;
+                                $this->tbody[$value][$course->day] = Html::tag('td', $content, [
+                                    'style' => ['vertical-align' => 'middle'],
+                                    'class' => 'info',
+                                    'data-id' => $course->id,
+                                    'data-day' => $course->day,
+                                    'data-sec' => $value,
+                                    'rowspan' => count($sec),
+                                ]);
+                            } else {
+                                // 删除rowspan后多出tr标签
+                                $this->tbody[$value][$course->day] = null;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         foreach ($this->tbody as $k => $td) {

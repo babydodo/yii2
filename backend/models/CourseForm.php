@@ -8,6 +8,7 @@ use Yii;
 
 /**
  * 课程新增与修改表单模型类
+ *
  * @property array classID
  */
 class CourseForm extends Course
@@ -29,7 +30,7 @@ class CourseForm extends Course
     {
         return array_merge(parent::rules(),[
             ['classID', 'safe'],
-            [['sec'], 'validateTime'],
+            ['sec', 'validateTime'],
             [['day', 'week'], 'validateTime'],
         ]);
     }
@@ -43,7 +44,7 @@ class CourseForm extends Course
     }
 
     /**
-     * 验证教师和班级在所选时间段是否空闲(验证规则)
+     * 验证教师和班级在所选时间段是否空闲(验证规则)(待完善)
      * @param string $attribute
      * @param array $params
      */
@@ -68,10 +69,10 @@ class CourseForm extends Course
                 $this->addError($attribute, '该教师在此时间段有课');
             } elseif(!empty($this->classID)) {
                 // 判断班级是否空闲
-                if ($queryCopy1->innerJoinWith('classes')->andFilterWhere(['classes.id'=>$this->classID])->one()) {
+                if ($queryCopy1->innerJoinWith('classes')->andWhere(['classes.id'=>$this->classID])->one()) {
                     $this->addError($attribute, '所选班级在此时间段有课');
-                    // 判断班级是否所有人空闲
-                } elseif ($queryCopy2->innerJoinWith('students')->andFilterWhere(['user.class_id'=>$this->classID])->one()) {
+                    // 判断班级是否所有学生空闲
+                } elseif ($queryCopy2->innerJoinWith('students')->andWhere(['user.class_id'=>$this->classID])->one()) {
                     $this->addError($attribute, '所选班级有学生在此时间段有课');
                 }
             }
@@ -80,7 +81,7 @@ class CourseForm extends Course
 
     /**
      * 保存课程及班级关联信息
-     * @param null $id
+     * @param null|integer $id
      * @return bool
      * @throws \Exception
      */
@@ -92,6 +93,7 @@ class CourseForm extends Course
         } else {
             $course = new Course();
         }
+
         // course模型属性赋值
         $course->number = $this->number;
         $course->name = $this->name;

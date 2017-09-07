@@ -22,26 +22,26 @@ $this->params['breadcrumbs'][] = $this->title;
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'columns' => [
+            // 序号列
             ['class' => 'yii\grid\SerialColumn'],
 
+            // 内容列
             'number',
             'name',
             ['attribute' => 'teacher',
-             'label' => '教师',
              'value' => 'user.nickname',
             ],
             'week',
             ['attribute' => 'day',
-             'label' => '星期',
              'value' => 'dayStr',
              'filter' => Course::allDays(),
             ],
             'sec',
             ['attribute' => 'classroomName',
-             'label' => '教室',
              'value' => 'classroom.name',
             ],
 
+            // 动作列
             ['class' => 'yii\grid\ActionColumn',
              'template'=>'{update} {delete}',
             ],

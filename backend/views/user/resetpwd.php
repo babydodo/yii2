@@ -1,11 +1,8 @@
 <?php
+
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
 use yii\helpers\Url;
-
-//use yii\widgets\ActiveForm;
-//use yii\helpers\Html;
-
 
 /* @var $this yii\web\View */
 /* @var $model common\models\User */
@@ -62,5 +59,4 @@ $this->registerJs($js);
 		
 		</div>
     
-
 </div>

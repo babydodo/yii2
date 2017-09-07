@@ -1,11 +1,12 @@
 <?php
 namespace backend\models;
 
+use common\models\Classes;
 use yii\base\Model;
 use common\models\User;
 
 /**
- * 新增用户表单模型
+ * 新增User模型表单
  */
 class CreateUserForm extends Model
 {
@@ -16,6 +17,7 @@ class CreateUserForm extends Model
     public $password_repeat;
 
     /**
+     * 属性验证规则
      * @inheritdoc
      */
     public function rules()
@@ -23,14 +25,16 @@ class CreateUserForm extends Model
         return [
             ['username', 'trim'],
             ['username', 'required'],
-            ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => '学号已存在！'],
-            ['username', 'string', 'min' => 2, 'max' => 255],
+            ['username', 'unique', 'targetClass' => User::className(), 'message' => '{attribute}已存在！'],
+            ['username', 'string', 'min' => 5, 'max' => 255],
 
+            ['nickname', 'trim'],
             ['nickname', 'required'],
             ['nickname', 'string', 'max' => 128],
 
             ['class_id', 'required'],
             ['class_id', 'integer'],
+            ['class_id', 'exist', 'skipOnError' => true, 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],
 
             ['password', 'required'],
             ['password', 'string', 'min' => 5],
@@ -57,8 +61,7 @@ class CreateUserForm extends Model
 
     /**
      * 新增一个用户
-     *
-     * @return User|null the saved model or null if saving fails
+     * @return User|null
      */
     public function createUser()
     {

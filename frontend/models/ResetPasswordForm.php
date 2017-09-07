@@ -6,7 +6,7 @@ use yii\base\InvalidParamException;
 use common\models\User;
 
 /**
- * Password reset form
+ * 根据令牌重置密码表单模型
  */
 class ResetPasswordForm extends Model
 {
@@ -17,13 +17,11 @@ class ResetPasswordForm extends Model
      */
     private $_user;
 
-
     /**
-     * Creates a form model given a token.
-     *
+     * 根据令牌创建模型
      * @param string $token
-     * @param array $config name-value pairs that will be used to initialize the object properties
-     * @throws \yii\base\InvalidParamException if token is empty or not valid
+     * @param array $config
+     * @throws \yii\base\InvalidParamException
      */
     public function __construct($token, $config = [])
     {
@@ -44,14 +42,13 @@ class ResetPasswordForm extends Model
     {
         return [
             ['password', 'required'],
-            ['password', 'string', 'min' => 6],
+            ['password', 'string', 'min' => 5],
         ];
     }
 
     /**
-     * Resets password.
-     *
-     * @return bool if password was reset.
+     * 重置密码
+     * @return bool
      */
     public function resetPassword()
     {

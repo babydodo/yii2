@@ -62,15 +62,17 @@ $this->registerJs($js);
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'columns' => [
+            // 序号列
             ['class' => 'yii\grid\SerialColumn'],
 
+            // 内容列
             'username',
             'nickname',
             ['attribute'=>'className',
-             'label'=>'班级',
              'value'=>'class.name',
             ],
 
+            // 动作列
             ['class' => 'yii\grid\ActionColumn',
                 'template' => '{update} {resetpwd} {delete}',
                 'buttons' => [
@@ -101,4 +103,5 @@ $this->registerJs($js);
             ],
         ],
     ]); ?>
+
 </div>

@@ -7,7 +7,6 @@ use yii\bootstrap\ActiveForm;
 use yii\helpers\Html;
 use yii\helpers\Url;
 
-
 /* @var $this yii\web\View */
 /* @var $model common\models\Application */
 /* @var $form yii\widgets\ActiveForm */
@@ -18,10 +17,12 @@ $this->params['breadcrumbs'][] = $this->title;
 
 <?php
 $showCoursesUrl = Url::toRoute('/site/show-courses');
+$allCoursesUrl = Url::toRoute('all-courses');
 $freeTimeUrl = Url::toRoute('free-time');
 $freeClassroomUrl = Url::toRoute('free-classroom');
 $js = <<<JS
     let modal = $('#modal_id');
+    let modal_body = $('.modal-body');
     let apply_week = $('#application-apply_week');
     let apply_sec = $('#application-apply_sec');
     let course_id = $('#application-course_id');
@@ -33,26 +34,32 @@ $js = <<<JS
     let dayArray = ['', '一', '二', '三', '四', '五', '六', '天'];
     
     // 停调课类型下拉菜单事件
-    $(document).on('change', '#application-type', function () {
+    $('#application-type').on('change', function () {
         let suspend = $('#adjust-suspend');
         let schedule = $('#adjust-schedule');
+        
+        // 如果选择调课
         if($(this).val()==='1') {
             suspend.show();
             schedule.show();
         }
-       
+        
+        // 如果选择停课
         if($(this).val()==='2') {
             suspend.show();
             schedule.hide();
             
         }
-       
+        // 如果选择排课
         if($(this).val()==='3') {
             suspend.hide();
             schedule.show();
             
         }
        
+        course_info.val('');
+        course_id.val('');
+        apply_sec.val('');
     });
 
     // 调整前周次下拉菜单事件
@@ -65,34 +72,48 @@ $js = <<<JS
     // 显示课表按钮点击事件
     $('#display-courses').on('click', function () {
         modal.find('.modal-title').html('我的课表');
-        if (apply_week.val()) {    
-            $.get('{$showCoursesUrl}', { week:apply_week.val() }, function (data) {
-                modal.find('.modal-body').html(data);
+        // 如果是排课
+        if ($('#application-type').val() === '3') {
+            $.get('{$allCoursesUrl}', {}, function (data) {
+                modal.find(modal_body).html(data);
             });
-            
-            // modal表格每个单元格点击事件
-            $('.modal-body').off('click').on('click', 'td', function() {  
-                if ($(this).text()) {                  
-                    let dayStr = '星期'+dayArray[$(this).data('day')];
-                    let secStart = $(this).data('sec');
-                    let secStop = parseInt($(this).data('sec'))+parseInt($(this).attr('rowspan'))-1;
-                    let secStr = '';
-                    if (secStart !== secStop) {
-                        for (let i=secStart;i<secStop;i++) {
-                            secStr += i+',';
-                        }
-                    }
-                    secStr += secStop;
-                    let courseStr = $(this).text().split(' ')[0];
-                    course_info.val(dayStr+' '+secStart+'-'+secStop+'节 '+courseStr);
-                    course_id.val($(this).data('id'));
-                    apply_sec.val(secStr);
-                    modal.modal('hide');
-                }
+            // 每个课程名按钮点击事件
+            $(modal_body).off('click').on('click', 'button', function() {
+                course_info.val($(this).text());
+                course_id.val($(this).data('key'));
+                modal.modal('hide');
             });
-            
         } else {
-            modal.find('.modal-body').html('请先选择 需调整周次');
+            // 如果不是排课
+            if (apply_week.val()) {    
+                $.get('{$showCoursesUrl}', { week:apply_week.val() }, function (data) {
+                    modal.find(modal_body).html(data);
+                });
+                
+                // modal表格每个单元格点击事件
+                $(modal_body).off('click').on('click', 'td', function() {  
+                    if ($(this).text()) {                  
+                        let dayStr = '星期'+dayArray[$(this).data('day')];
+                        let secStart = $(this).data('sec');
+                        let secStop = parseInt($(this).data('sec'))+parseInt($(this).attr('rowspan'))-1;
+                        let secStr = '';
+                        if (secStart !== secStop) {
+                            for (let i=secStart;i<secStop;i++) {
+                                secStr += i+',';
+                            }
+                        }
+                        secStr += secStop;
+                        let courseStr = $(this).text().split(' ')[0];
+                        course_info.val(dayStr+' '+secStart+'-'+secStop+'节 '+courseStr);
+                        course_id.val($(this).data('id'));
+                        apply_sec.val(secStr);
+                        modal.modal('hide');
+                    }
+                });
+                
+            } else {
+                modal.find(modal_body).html('请先选择 需调整周次');
+            }
         }
     });
     
@@ -110,7 +131,7 @@ $js = <<<JS
                     adjust_week:adjust_week.val()
                 }, 
                 function (data) {
-                    modal.find('.modal-body').html(data);
+                    modal.find(modal_body).html(data);
             });
             
             // modal表格每个单元格点击事件
@@ -119,7 +140,7 @@ $js = <<<JS
             
             let adjustSec = '';
             let timeStr = '';
-            $('.modal-body').off('click').on('click', 'td', function() {  
+            $(modal_body).off('click').on('click', 'td', function() {  
                 if ($(this).text()==='') {
                     // 限制选择的时段在同一天
                     if ($(this).hasClass('info')) {
@@ -140,14 +161,14 @@ $js = <<<JS
             });
             
             // 确定按钮点击事件
-            $('.modal-body').on('click', '#btn-confirm', function() {
+            $(modal_body).on('click', '#btn-confirm', function() {
                 time_info.val(timeStr);
                 adjust_day.val(day);
                 adjust_sec.val(adjustSec);
             });
             
         } else {
-            modal.find('.modal-body').html('请先选择 调整课程 与 周次');
+            modal.find(modal_body).html('请先选择 调整课程 与 周次');
         }
     });
     
@@ -163,17 +184,17 @@ $js = <<<JS
                     sec:adjust_sec.val(),
                 },
                 function (data) {
-                    modal.find('.modal-body').html(data);
+                    modal.find(modal_body).html(data);
                 }
             );
             
             // modal每个按钮点击事件
-            $('.modal-body').off('click').on('click', 'button', function() {
+            $(modal_body).off('click').on('click', 'button', function() {
                 $('#application-classroom_id').val($(this).text());    
                 modal.modal('hide');
             });
         } else {
-            modal.find('.modal-body').html('请先选择 调整后周次 与 时间段');
+            modal.find(modal_body).html('请先选择 调整后周次 与 时间段');
         }
     });
     
@@ -217,7 +238,7 @@ $this->registerJs($js);
             <label class="control-label col-sm-3">调整课程</label>
             <div class='col-sm-6'>
                 <div class='input-group'>
-                    <input id='course-info' class='form-control' disabled>
+                    <input id='course-info' class='form-control' autocomplete='off' disabled>
                     <span class='input-group-btn'><?= $courseButton ?></span>
                 </div>
             </div>

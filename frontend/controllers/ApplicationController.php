@@ -2,19 +2,19 @@
 
 namespace frontend\controllers;
 
+use common\models\Activity;
 use common\models\Adminuser;
 use common\models\Application;
 use common\models\Audit;
 use common\models\Classroom;
 use common\models\Course;
-use common\widgets\ApplyDetailWidget;
+use common\models\User;
 use common\widgets\ButtonsWidget;
-use common\widgets\CoursesWidget;
 use Yii;
 use yii\data\ActiveDataProvider;
+use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
-use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -31,7 +31,22 @@ class ApplicationController extends Controller
      */
     public function behaviors()
     {
+        // 控制器只允许教师角色访问
         return [
+            'access' => [
+                'class' => AccessControl::className(),
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'matchCallback' => function ($rule, $action) {
+                            if (!Yii::$app->user->isGuest) {
+                                return Yii::$app->user->identity->class_id == User::TEACHER_CLASS ? true : false;
+                            }
+                            return false;
+                        },
+                    ],
+                ],
+            ],
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
@@ -43,7 +58,7 @@ class ApplicationController extends Controller
 
     /**
      * 列出所有申请记录
-     * @return mixed
+     * @return string
      */
     public function actionIndex()
     {
@@ -62,20 +77,19 @@ class ApplicationController extends Controller
 
     /**
      * 停调课申请
-     * @return mixed
+     * @return array|string
      * @throws \Exception
      */
     public function actionApply()
     {
         $model = new Application();
-
-        $model->user_id = Yii::$app->user->id;
         $model->teacher_id = Yii::$app->user->id;
 
         // 块赋值
         $load = $model->load(Yii::$app->request->post());
+        $model->user_id = Yii::$app->user->id;
 
-        // ajax验证
+        // Ajax验证
         if (Yii::$app->request->isAjax) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             return ActiveForm::validate($model);
@@ -106,24 +120,46 @@ class ApplicationController extends Controller
 
     /**
      * 根据时间查询空闲教室
-     * @return mixed
+     * @return string
      */
     public function actionFreeClassroom()
     {
         $request = Yii::$app->request;
         $course_id = $request->post('course_id');
         $day = $request->post('day');
-        $secSelected = is_array($request->post('sec'))?implode('|', $request->post('sec')):null;
-        $weekSelected = $request->post('week');
+        $sec = $request->post('sec');
+        $week = $request->post('week');
 
-        $query = Course::find();
-        $query->andFilterWhere(['not', ['id'=>$course_id]]);
-        $query->select(['classroom_id']);
-        $query->andWhere(['day'=>$day]);
-        $query->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(".$secSelected.")[^0-9]+'");
-        $query->andWhere("CONCAT(',',`week`,',') REGEXP '[^0-9]+(".$weekSelected.")[^0-9]+'");
-        $usedClassroom = $query->column();
+        // Course表中某一时间段使用的教室
+        $usedClassroom1 = Course::find()
+            ->select(['classroom_id'])
+            ->andFilterWhere(['not', ['id'=>$course_id]])
+            ->andWhere('FIND_IN_SET('.$week.',week)')
+            ->andWhere(['day'=>$day])
+            ->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(".$sec.")[^0-9]+'")
+            ->column();
 
+        // Application表中某一时间段使用的教室
+        $usedClassroom2 = Application::find()
+            ->select(['classroom_id'])
+            ->andWhere(['status' => Audit::STATUS_UNAUDITED])
+            ->andWhere('FIND_IN_SET('.$week.',adjust_week)')
+            ->andWhere(['adjust_day'=>$day])
+            ->andWhere("CONCAT(',',`adjust_sec`,',') REGEXP '[^0-9]+(".$sec.")[^0-9]+'")
+            ->column();
+
+        // Activity表中某一时间段使用的教室
+        $usedClassroom3 = Activity::find()
+            ->select(['classroom_id'])
+            ->andWhere('FIND_IN_SET('.$week.',week)')
+            ->andWhere(['day'=>$day])
+            ->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(".$sec.")[^0-9]+'")
+            ->column();
+
+        // 合并为某一时间段中使用或者被申请的教室
+        $usedClassroom = array_merge($usedClassroom1, $usedClassroom2, $usedClassroom3);
+
+        // 某一时间段中未被占用的教室
         $freeClassroom = Classroom::find()->where(['not in', 'id', $usedClassroom])->all();
 
         return ButtonsWidget::widget(['classrooms'=>$freeClassroom]);
@@ -132,7 +168,7 @@ class ApplicationController extends Controller
 
     /**
      * 根据调整后周次显示课表空闲时间段
-     * @return mixed
+     * @return string
      */
     public function actionFreeTime()
     {
@@ -143,13 +179,15 @@ class ApplicationController extends Controller
         $teacher_id = $request->post('teacher_id');
         $adjust_week = $request->post('adjust_week');
 
-        $query = Course::find();
+        // part.1 Course表
+        $course = Course::find();
 
         // 如果调整后周次不变, 则排除申请课程本身以便可以选择课程本身的时间段
         $adjustCourse = null;
         if ($apply_week == $adjust_week) {
-            $query->andWhere(['not', ['course.id'=>$course_id]]);
-            // 未添加上同一天中未被调整的节次
+            $course->andWhere(['not', ['course.id'=>$course_id]]);
+
+            // 同一天中未被调整的节次
             $adjustCourse = Course::findOne($course_id);
             $adjustCourse->sec = explode(',', $adjustCourse->sec);
             $apply_sec = explode(',', $apply_sec);
@@ -159,33 +197,109 @@ class ApplicationController extends Controller
             } else {
                 $adjustCourse->sec = implode(',', $diff);
             }
-
         }
 
-        $query->andWhere('FIND_IN_SET('.$adjust_week.',week)');
+        $course->andWhere('FIND_IN_SET('.$adjust_week.',week)');
 
-        $queryCopy1 = clone $query;
-        $queryCopy2 = clone $query;
+        $courseCopy1 = clone $course;
+        $courseCopy2 = clone $course;
 
         // 授课教师课程
-        $a = $query->andWhere(['user_id' => $teacher_id])->all();
+        $teacherCourse = $course
+            ->andWhere(['user_id' => $teacher_id])
+            ->indexBy('id')
+            ->all();
         // 班级课程
         $classes_id = ArrayHelper::getColumn(Course::findOne($course_id)->classes, 'id');
-        $b = $queryCopy1->innerJoinWith('classes')->andWhere(['classes.id'=>$classes_id])->all();
-        // 学生选课
-        $c = $queryCopy2->innerJoinWith('students')->andWhere(['user.class_id'=>$classes_id])->all();
-
+        $classCourse = $courseCopy1->innerJoinWith('classes')
+            ->andWhere(['classes.id'=>$classes_id])
+            ->indexBy('id')
+            ->all();
+        // 学生选修课程
+        $userID = ArrayHelper::getColumn(Course::findOne($course_id)->students, 'id');
+        $studentCourse = $courseCopy2->innerJoinWith('students')
+            ->andWhere(['or', ['user.class_id'=>$classes_id], ['user.id' => $userID]])
+            ->indexBy('id')
+            ->all();
         // 合并课程
-        $courses = ArrayHelper::merge($a, $b, $c, [$adjustCourse]);
+        $courses = $teacherCourse + $classCourse + $studentCourse + [$adjustCourse];
 
-//        return CoursesWidget::widget(['courses'=>$courses, 'single'=>true]);
-        return $this->renderAjax('freeTime', ['courses'=>$courses]);
+        // part.2 Activity表
+        $classSelected = implode('|', $classes_id);
+        $activities = Activity::find()
+            ->andWhere('FIND_IN_SET('.$adjust_week.',week)')
+            ->andWhere("CONCAT(',',`classes_ids`,',') REGEXP '[^0-9]+(".$classSelected.")[^0-9]+'")
+            ->all();
+
+        // part.3 Application表
+        $application = Application::find()
+        ->andWhere(['status' => Audit::STATUS_UNAUDITED])
+        ->andWhere('FIND_IN_SET('.$adjust_week.',adjust_week)');
+
+        $applicationCopy = clone $application;
+
+        // 涉及授课教师正被申请的记录
+        $teaApplication = $application->andWhere(['teacher_id' => $teacher_id])
+            ->indexBy('id')
+            ->all();
+
+        // 班级课程ID
+        $a = Course::find()
+                ->select(['course.id'])
+                ->innerJoinWith('classes')
+                ->andWhere(['classes.id'=>$classes_id])
+                ->column();
+
+        // 授课班内所有学生选修课程ID
+        $b = Course::find()
+                ->select(['course.id'])
+                ->innerJoinWith('students')
+                ->andWhere(['or', ['user.class_id'=>$classes_id], ['user.id' => $userID]])
+                ->column();
+
+        // 涉及授课班内所有学生的正被申请记录
+        $stuApplication = $applicationCopy
+            ->andWhere(['course_id' => array_unique(array_merge($a, $b))])
+            ->indexBy('id')
+            ->all();
+
+        // 合并申请记录
+        $applications = $teaApplication + $stuApplication;
+
+        return $this->renderAjax('freeTime', [
+            'courses' => $courses,
+            'activities' => $activities,
+            'applications' => $applications,
+        ]);
+    }
+
+    /**
+     * 显示教师所有课程(未完善)
+     * @return string
+     */
+    public function actionAllCourses() {
+        $courses = Course::find()
+            ->select(['name', 'id'])
+            ->andWhere(['user_id' => Yii::$app->user->id])
+            ->indexBy('id')
+            ->column();
+
+        $buttons = array();
+        foreach (array_unique($courses) as $key => $course) {
+            $buttons[] = Html::button($course, [
+                'data-key' => $key,
+                'style' => "margin-bottom: 4px;",
+                'class' => 'btn btn-default',
+            ]);
+        }
+
+        return '<div>'.implode("\n", $buttons).'</div>';
     }
 
     /**
      * 显示单个申请详细信息
      * @param integer $id
-     * @return mixed
+     * @return string
      */
     public function actionView($id)
     {
@@ -195,43 +309,21 @@ class ApplicationController extends Controller
     }
 
     /**
-     * Updates an existing Application model.
-     * If update is successful, the browser will be redirected to the 'view' page.
+     * 根据id撤销申请记录
      * @param integer $id
-     * @return mixed
-     */
-    public function actionUpdate($id)
-    {
-        $model = $this->findModel($id);
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        } else {
-            return $this->render('update', [
-                'model' => $model,
-            ]);
-        }
-    }
-
-    /**
-     * Deletes an existing Application model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
+     * @return Response
      */
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
         return $this->redirect(['index']);
     }
 
     /**
      * 根据id找到对应申请记录
-     * 如果记录不存在则跳转到404页面
      * @param integer $id
-     * @return Application the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return Application
+     * @throws NotFoundHttpException 如果记录不存在则跳转到404页面
      */
     protected function findModel($id)
     {
@@ -243,6 +335,7 @@ class ApplicationController extends Controller
     }
 
     /**
+     * 根据申请内容推送给相应管理员
      * @param Application $model
      * @return bool
      */

@@ -23,6 +23,7 @@ class Elective extends \yii\db\ActiveRecord
     }
 
     /**
+     * 属性验证规则
      * @inheritdoc
      */
     public function rules()

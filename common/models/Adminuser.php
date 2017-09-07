@@ -38,16 +38,19 @@ class Adminuser extends ActiveRecord implements IdentityInterface
     }
 
     /**
+     * 属性验证规则
      * @inheritdoc
      */
     public function rules()
     {
         return [
+            [['username', 'nickname'], 'trim'],
             [['username', 'nickname', 'role'], 'required'],
             [['username', 'email'], 'string', 'max' => 255],
-            ['username', 'unique', 'targetClass' => '\common\models\Adminuser', 'message' => '职工号已存在！'],
+            ['username', 'unique', 'message' => '{attribute}已存在！'],
             ['nickname', 'string', 'max' => 128],
-            [['role'], 'integer'],
+            ['role', 'integer'],
+            ['role', 'in', 'range' => [self::DIRECTOR, self::DEAN, self::LABORATORY, self::COUNSELOR]],
             ['email', 'email'],
             ['email', 'default', 'value' => null],
         ];
@@ -102,7 +105,6 @@ class Adminuser extends ActiveRecord implements IdentityInterface
 
     /**
      * 根据username找到对应记录
-     *
      * @param string $username
      * @return static|null
      */
@@ -113,7 +115,6 @@ class Adminuser extends ActiveRecord implements IdentityInterface
 
     /**
      * 根据password_reset_token找到对应记录
-     *
      * @param string $token 密码重置令牌
      * @return static|null
      */
@@ -130,7 +131,6 @@ class Adminuser extends ActiveRecord implements IdentityInterface
 
     /**
      * 检验password_reset_token是否有效
-     *
      * @param string $token password reset token
      * @return bool
      */
@@ -170,10 +170,9 @@ class Adminuser extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * 验证密码
-     *
-     * @param string $password password to validate
-     * @return bool if password provided is valid for current user
+     * 验证密码是否正确
+     * @param string $password
+     * @return bool
      */
     public function validatePassword($password)
     {
@@ -182,7 +181,6 @@ class Adminuser extends ActiveRecord implements IdentityInterface
 
     /**
      * 设置密码
-     *
      * @param string $password
      */
     public function setPassword($password)
@@ -215,7 +213,7 @@ class Adminuser extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * @return null|string 对应角色的中文字符串
+     * @return string role属性值对应的中文
      */
     public function getRoleStr()
     {

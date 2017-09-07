@@ -2,7 +2,6 @@
 
 use common\models\Classes;
 use common\models\Course;
-use common\models\User;
 use yii\bootstrap\ActiveForm;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -19,20 +18,20 @@ $js = <<<JS
         $('#modal_id').find('.modal-title').html('空闲教室');
 
         let secCheckBox = [];
-        $("#courseform-sec input[type='checkbox']").each(function () {
+        $("#activity-sec input[type='checkbox']").each(function () {
             if($(this).prop('checked')) {
                 secCheckBox.push($(this).attr("value"));
             }
         });
         
         let weekCheckBox = [];
-        $("#courseform-week input[type='checkbox']").each(function () {
+        $("#activity-week input[type='checkbox']").each(function () {
             if($(this).prop('checked')) {
                 weekCheckBox.push($(this).attr("value"));
             }
         });
 
-        $.post('{$freeClassroomUrl}', {id:'{$model->id}', day:$("#courseform-day").val(), sec:secCheckBox, week:weekCheckBox},
+        $.post('{$freeClassroomUrl}', {id:'{$model->id}', day:$("#activity-day").val(), sec:secCheckBox, week:weekCheckBox},
             function (data) {
                 $('#modal_id').find('.modal-body').html(data);
             }
@@ -40,7 +39,7 @@ $js = <<<JS
 
         // modal每个按钮点击事件
         $('.modal-body').off('click').on('click', 'button', function() {
-            $('#courseform-classroom_id').val($(this).text());    
+            $('#activity-classroom_id').val($(this).text());    
             $('#modal_id').modal('hide');
         });
 
@@ -49,11 +48,23 @@ JS;
 $this->registerJs($js);
 ?>
 
-<div class="course-form">
+<div class="activity-form">
 
     <?php $form = ActiveForm::begin(['enableAjaxValidation' => true, 'layout' => 'horizontal']); ?>
 
-    <?= $form->field($model, 'name')->label('活动名称')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
+
+    <?= $form->field($model, 'week')->checkboxList(Course::allWeeks(), [
+        'item'=>function($index, $label, $name, $checked, $value) {
+            $checkStr = $checked?'checked':'';
+            $activeStr = $checked?' active':'';
+            return '<div style="margin-bottom: 4px;" class="btn-group" data-toggle="buttons">
+                        <label class="btn btn-default'.$activeStr.'">
+                            <input type="checkbox" name="'.$name.'" value="'.$value.'" '.$checkStr.'>'
+                            .$label.
+                        '</label>
+                    </div>';
+        }]) ?>
 
     <?= $form->field($model, 'day')->dropDownList(Course::allDays(),['prompt'=>'请选择时间']) ?>
 
@@ -68,18 +79,6 @@ $this->registerJs($js);
                         '</label>
                     </div>';
         }]) ?>
-
-    <?= $form->field($model, 'week')->checkboxList(Course::allWeeks(), [
-        'item'=>function($index, $label, $name, $checked, $value) {
-            $checkStr = $checked?'checked':'';
-            $activeStr = $checked?' active':'';
-            return '<div style="margin-bottom: 4px;" class="btn-group" data-toggle="buttons">
-                        <label class="btn btn-default'.$activeStr.'">
-                            <input type="checkbox" name="'.$name.'" value="'.$value.'" '.$checkStr.'>'
-                            .$label.
-                        '</label>
-                    </div>';
-        }])->label('安排周') ?>
 
     <?php $button = Html::a('显示空闲教室', '#', [
             'id' => 'free-classroom',
@@ -101,7 +100,7 @@ $this->registerJs($js);
                 </div>"
     ])->textInput() ?>
 
-    <?= $form->field($model, 'classID')->checkboxList(Classes::adminuserClasses(Yii::$app->user->id), [
+    <?= $form->field($model, 'classes_ids')->checkboxList(Classes::adminuserClasses(Yii::$app->user->id), [
         'item'=>function($index, $label, $name, $checked, $value) {
             $checkStr = $checked?'checked':'';
             $activeStr = $checked?' active':'';

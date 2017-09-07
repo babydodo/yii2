@@ -5,7 +5,6 @@ use common\widgets\ApplyDetailWidget;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
-use yii\widgets\DetailView;
 
 /* @var $this yii\web\View */
 /* @var $model common\models\Audit */
@@ -31,7 +30,7 @@ JS;
 $this->registerJs($js);
 ?>
 
-<div class="application-view">
+<div class="audit-view">
 
     <?= ApplyDetailWidget::widget([
             'application' => $model->application,

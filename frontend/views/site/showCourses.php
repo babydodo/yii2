@@ -6,6 +6,7 @@ use yii\bootstrap\Html;
 use yii\helpers\Url;
 
 /* @var $this yii\web\View */
+/* @var $activities common\models\Activity */
 /* @var $courses common\models\Course */
 
 $this->title = '个人课表';
@@ -42,7 +43,10 @@ $this->registerJs($js);
         </div>
 
         <div id="courses">
-            <?= CoursesWidget::widget(['courses'=>$courses]) ?>
+            <?= CoursesWidget::widget([
+                    'activities' => $activities,
+                    'courses'=>$courses,
+                ]) ?>
         </div>
 
     </div>

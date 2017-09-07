@@ -1,12 +1,12 @@
 <?php
 
-/* @var $this yii\web\View */
-/* @var $form yii\bootstrap\ActiveForm */
-/* @var $model \backend\models\LoginForm */
-
 use backend\assets\AppAsset;
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
+
+/* @var $this yii\web\View */
+/* @var $form yii\bootstrap\ActiveForm */
+/* @var $model \backend\models\LoginForm */
 
 AppAsset::register($this);
 $this->title = '停调课管理系统 - 后台';

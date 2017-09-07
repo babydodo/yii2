@@ -1,19 +1,18 @@
 <?php
 namespace frontend\controllers;
 
+use common\models\Activity;
 use common\models\Course;
 use common\models\User;
 use common\widgets\CoursesWidget;
 use Yii;
 use yii\bootstrap\ActiveForm;
-use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use frontend\models\LoginForm;
 use backend\models\ResetpwdForm;
 use yii\web\Response;
-
 
 /**
  * 前台站点控制器
@@ -28,18 +27,18 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout', 'signup'],
+                'only' => ['logout'],
                 'rules' => [
                     [
-                        'actions' => ['signup'],
+                        'actions' => ['login', 'error'],
                         'allow' => true,
-                        'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['logout'],
+                        'actions' => ['index', 'resetpwd', 'logout', 'showCourses'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
+
                 ],
             ],
             'verbs' => [
@@ -60,17 +59,12 @@ class SiteController extends Controller
             'error' => [
                 'class' => 'yii\web\ErrorAction',
             ],
-            'captcha' => [
-                'class' => 'yii\captcha\CaptchaAction',
-                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
-            ],
         ];
     }
 
     /**
-     * 显示主页
-     *
-     * @return mixed
+     * 显示前台首页
+     * @return string
      */
     public function actionIndex()
     {
@@ -79,8 +73,7 @@ class SiteController extends Controller
 
     /**
      * 登陆
-     *
-     * @return mixed
+     * @return Response|string
      */
     public function actionLogin()
     {
@@ -100,20 +93,18 @@ class SiteController extends Controller
 
     /**
      * 注销当前用户
-     *
-     * @return mixed
+     * @return Response
      */
     public function actionLogout()
     {
         Yii::$app->user->logout();
-
         return $this->goHome();
     }
 
     /**
      * 显示个人详细课表
-     * @param int $week
-     * @return mixed
+     * @param integer $week
+     * @return CoursesWidget|string
      */
     public function actionShowCourses($week = 1)
     {
@@ -123,37 +114,52 @@ class SiteController extends Controller
         if (Yii::$app->user->identity->class_id == User::TEACHER_CLASS) {
             // 教师课表
             $courses = $model->andWhere(['user_id'=>Yii::$app->user->id])->all();
+            $activities = [];
         } else {
-            // 学生课表
-            $model2 = clone $model;
-            // step.1 查询所属班级课程
+            // part.1 学生课表
+            $modelCopy = clone $model;
+            $stuClassId = Yii::$app->user->identity->class_id;
+            // 查询所属班级课程
             $classCourses = $model->innerJoinWith(['classes'])
-                            ->andWhere(['classes.id' => Yii::$app->user->identity->class_id])
+                            ->andWhere(['classes.id' => $stuClassId])
                             ->all();
-            // step.2 查询学生自身选课
-            $studentCourses = $model2->innerJoinWith(['students'])
+            // 查询学生自身选课
+            $studentCourses = $modelCopy->innerJoinWith(['students'])
                             ->andWhere(['user.id'=>Yii::$app->user->id])
                             ->all();
-            // step.3 合并课程
+            // 合并课程
             $courses = array_merge($classCourses, $studentCourses);
+
+            // part.2 学生所属班级课外活动表
+            $activities = Activity::find()
+                ->where('FIND_IN_SET('.$week.',week)')
+                ->andWhere('FIND_IN_SET('.$stuClassId.',classes_ids)')
+                ->all();
         }
 
+        // Ajax请求返回数据
         if (Yii::$app->request->isAjax) {
-            return CoursesWidget::widget(['courses'=>$courses]);
+            return CoursesWidget::widget([
+                'activities' => $activities,
+                'courses'=>$courses,
+            ]);
         }
 
-        return $this->render('showCourses', ['courses' => $courses]);
+        return $this->render('showCourses', [
+            'activities' => $activities,
+            'courses' => $courses,
+        ]);
     }
 
     /**
-     * 重置密码
-     *
-     * @return mixed
-     * @throws BadRequestHttpException
+     * 修改个人密码
+     * @return boolean|string
      */
     public function actionResetpwd()
     {
         $model = new ResetpwdForm();
+
+        // 块赋值与重置密码
         if ($model->load(Yii::$app->request->post()) && $model->resetPassword(User::findOne(Yii::$app->user->id))) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             return true;
@@ -172,16 +178,6 @@ class SiteController extends Controller
         $model->load(Yii::$app->request->post());
         Yii::$app->response->format = Response::FORMAT_JSON;
         return ActiveForm::validate($model);
-    }
-
-    /**
-     * Displays about page.
-     *
-     * @return mixed
-     */
-    public function actionAbout()
-    {
-        return $this->render('about');
     }
 
 }

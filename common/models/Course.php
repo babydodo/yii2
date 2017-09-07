@@ -39,16 +39,19 @@ class Course extends \yii\db\ActiveRecord
     }
 
     /**
+     * 属性验证规则
      * @inheritdoc
      */
     public function rules()
     {
         return [
+            ['name', 'trim'],
             [['number', 'name', 'user_id', 'day', 'sec', 'week', 'classroom_id'], 'required'],
             ['classroom_id', 'filter', 'filter' => function ($value) {
                 return Classroom::find()->where(['name'=>$value])->scalar();
             }, 'skipOnArray' => true],
             [['number', 'user_id', 'day'], 'integer'],
+            ['day', 'in', 'range' => [1, 2, 3, 4, 5, 6, 7] ],
             [['name'], 'string', 'max' => 128],
             [['sec', 'week'],'filter', 'filter' => function ($value) {
                 return is_array($value)?implode(',', $value):$value;
@@ -56,6 +59,7 @@ class Course extends \yii\db\ActiveRecord
             [['sec', 'week'], 'string', 'max' => 64],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
             ['classroom_id', 'exist', 'skipOnError' => true, 'targetClass' => Classroom::className(), 'targetAttribute' => ['classroom_id' => 'id']],
+            // 自定义规则
             ['classroom_id', 'validateClassroom'],
         ];
     }
@@ -71,7 +75,7 @@ class Course extends \yii\db\ActiveRecord
             $secSelected = str_replace(',', '|', $this->sec);
             $weekSelected = str_replace(',', '|', $this->week);
 
-            $query = Course::find();
+            $query = self::find();
             $query->andFilterWhere(['not', ['id'=>$this->id]]);
             $query->andWhere(['day'=>$this->day]);
             $query->andWhere("CONCAT(',',`sec`,',') REGEXP '[^0-9]+(".$secSelected.")[^0-9]+'");
@@ -93,10 +97,12 @@ class Course extends \yii\db\ActiveRecord
             'number' => '课程代号',
             'name' => '课程名',
             'user_id' => '教师',
+            'teacher' => '教师',
             'day' => '星期',
             'sec' => '节',
             'week' => '授课周',
             'classroom_id' => '教室',
+            'classroomName' => '教室',
             'classroom_number' => '教室代号',
         ];
     }
@@ -144,7 +150,7 @@ class Course extends \yii\db\ActiveRecord
     }
 
     /**
-     * @return string
+     * @return string day属性值对应的中文
      */
     public function getDayStr()
     {
@@ -161,8 +167,7 @@ class Course extends \yii\db\ActiveRecord
     }
 
     /**
-     * 周一到周日数组
-     * @return array
+     * @return array 周一至周日数组
      */
     public static function allDays()
     {
@@ -178,8 +183,7 @@ class Course extends \yii\db\ActiveRecord
     }
 
     /**
-     * 1到12节课数组
-     * @return mixed
+     * @return array 1-12节数组
      */
     public static function allSections()
     {
@@ -191,8 +195,7 @@ class Course extends \yii\db\ActiveRecord
     }
 
     /**
-     * 1到16周数组
-     * @return mixed
+     * @return array 1-16周数组
      */
     public static function allWeeks()
     {

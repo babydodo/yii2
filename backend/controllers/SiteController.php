@@ -28,13 +28,24 @@ class SiteController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions' => ['login', 'error', 'setting'],
+                        'actions' => ['login', 'error'],
                         'allow' => true,
                     ],
                     [
                         'actions' => ['index', 'resetpwd', 'logout'],
                         'allow' => true,
                         'roles' => ['@'],
+                    ],
+                    // 设置操作只允许系主任角色访问
+                    [
+                        'actions' => ['setting'],
+                        'allow' => true,
+                        'matchCallback' => function ($rule, $action) {
+                            if (!Yii::$app->user->isGuest) {
+                                return Yii::$app->user->identity->role == Adminuser::DIRECTOR ? true : false;
+                            }
+                            return false;
+                        },
                     ],
                 ],
             ],
@@ -60,7 +71,7 @@ class SiteController extends Controller
     }
 
     /**
-     * 显示首页
+     * 显示后台首页
      * @return string
      */
     public function actionIndex()
@@ -69,12 +80,14 @@ class SiteController extends Controller
     }
 
     /**
-     * 修改密码
+     * 修改个人密码
+     * @return boolean|string
      */
     public function actionResetpwd()
     {
         $model = new ResetpwdForm();
 
+        // 块赋值与重置密码
         if ($model->load(Yii::$app->request->post()) && $model->resetPassword(Adminuser::findOne(Yii::$app->user->id))) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             return true;
@@ -97,7 +110,7 @@ class SiteController extends Controller
 
     /**
      * 登陆
-     * @return string
+     * @return Response|string
      */
     public function actionLogin()
     {
@@ -118,24 +131,23 @@ class SiteController extends Controller
 
     /**
      * 注销
-     * @return string
+     * @return Response
      */
     public function actionLogout()
     {
         Yii::$app->user->logout();
-
         return $this->goHome();
     }
 
     /**
-     * 设置
+     * 网站设置(待做)
      * @return string
      */
     public function actionSetting()
     {
         $model = new ExcelUpload();
-        $uploadSuccessPath = '';
         if (Yii::$app->request->isPost) {
+            // 文件上传
             $model->file = UploadedFile::getInstance($model, 'file');
             // 文件上传存放的目录
             $dir = '../../uploads/'.date('Ymd');
@@ -143,16 +155,46 @@ class SiteController extends Controller
                 mkdir($dir);
             if ($model->validate()) {
                 // 文件名
-                $fileName = date('His').$model->file->baseName . '.' . $model->file->extension;
+                $baseName = iconv('UTF-8','gb2312', $model->file->baseName);
+                $fileName = $baseName.'_'.date('His') . '.' . $model->file->extension;
                 $dir = $dir.'/'. $fileName;
-                // 文件编码未解决
                 $model->file->saveAs($dir);
-                $uploadSuccessPath = '/uploads/'.date('Ymd').'/'.$fileName;
             }
+
+            // 导入Excel
+            $file = $dir;
+            if ($model->file->extension == 'xlsx') {
+                $objReader = new \PHPExcel_Reader_Excel2007();
+            } else {
+                $objReader = new \PHPExcel_Reader_Excel5();
+            }
+            $objPHPExcel = $objReader->load($file);
+            // 第一张表对象
+            $objWorksheet = $objPHPExcel->getSheet(0);
+            // 最大行数
+            $highestRow = $objWorksheet->getHighestRow();
+            // 最大列数(字母)
+            $highestColumn = $objWorksheet->getHighestColumn();
+            // 将最大列数变为数字
+            $highestColumnIndex = \PHPExcel_Cell::columnIndexFromString($highestColumn);
+
+            $tableData = [];
+            for($row = 2;$row<=$highestRow;$row++){
+                // 写入数据库
+//                $classroom = new Classroom();
+//                $classroom->number = $objWorksheet->getCellByColumnAndRow(0, $row)->getValue();
+//                $classroom->name = $objWorksheet->getCellByColumnAndRow(1, $row)->getValue();
+//                $classroom->type = $objWorksheet->getCellByColumnAndRow(2, $row)->getValue();
+//                $classroom->amount = $objWorksheet->getCellByColumnAndRow(3, $row)->getValue();
+//                $classroom->save();
+                for($col=0;$col< $highestColumnIndex;$col++){
+                    $tableData[$row][$col] = $objWorksheet->getCellByColumnAndRow($col,$row)->getValue();
+                }
+            }
+
         }
         return $this->render('setting', [
             'model' => $model,
-            'uploadSuccessPath' => $uploadSuccessPath,
         ]);
     }
 

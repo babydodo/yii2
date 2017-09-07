@@ -24,6 +24,7 @@ class ClassesController extends Controller
      */
     public function behaviors()
     {
+        // 控制器只允许系主任角色访问
         return [
             'access' => [
                 'class' => AccessControl::className(),
@@ -66,7 +67,7 @@ class ClassesController extends Controller
     /**
      * 显示单个班级详细信息
      * @param integer $id
-     * @return mixed
+     * @return string
      */
     public function actionView($id)
     {
@@ -77,12 +78,13 @@ class ClassesController extends Controller
 
     /**
      * 新增一个班级
-     * @return mixed
+     * @return Response|string
      */
     public function actionCreate()
     {
         $model = new Classes();
 
+        // 块赋值与验证保存
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             Yii::$app->getSession()->setFlash('success', '新增班级成功');
             return $this->redirect(['index']);
@@ -94,12 +96,13 @@ class ClassesController extends Controller
     /**
      * 更新班级信息
      * @param integer $id
-     * @return mixed
+     * @return Response|string
      */
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
 
+        // 块赋值与验证保存
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             Yii::$app->getSession()->setFlash('success', '修改资料成功');
             return $this->redirect(['index']);
@@ -110,7 +113,7 @@ class ClassesController extends Controller
 
     /**
      * 验证新增与修改表单
-     * @param null $id
+     * @param null|integer $id
      * @return array
      */
     public function actionValidateSave($id = null)
@@ -124,24 +127,25 @@ class ClassesController extends Controller
     /**
      * 显示班级详细课表
      * @param integer $id
-     * @param int $week
-     * @return mixed
+     * @param integer $week
+     * @return string
      */
     public function actionShowCourses($id, $week=1)
     {
         // 班级课程表
-        $model = Course::find()->innerJoinWith('classes');
-        $model->where(['classes.id'=>$id]);
-        $model->andWhere('FIND_IN_SET('.$week.',week)');
-        $courses = $model->all();
+        $model = Course::find()
+            ->innerJoinWith('classes')
+            ->where(['classes.id'=>$id])
+            ->andWhere('FIND_IN_SET('.$week.',week)')
+            ->all();
 
-        return $this->renderAjax('showCourses', ['courses' => $courses]);
+        return $this->renderAjax('showCourses', ['courses' => $model]);
     }
 
     /**
      * 删除一个班级
      * @param integer $id
-     * @return mixed
+     * @return Response
      */
     public function actionDelete($id)
     {
@@ -151,10 +155,9 @@ class ClassesController extends Controller
 
     /**
      * 根据id找到对应班级记录
-     * 如果记录不存在则跳转到404页面
      * @param integer $id
-     * @return Classes the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return Classes
+     * @throws NotFoundHttpException 如果记录不存在则跳转到404页面
      */
     protected function findModel($id)
     {

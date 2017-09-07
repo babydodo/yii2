@@ -27,13 +27,15 @@ JS;
 $this->registerJs($js);
 ?>
 
-<div class="application-index">
+<div class="audit-index">
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'columns' => [
+            // 序号列
             ['class' => 'yii\grid\SerialColumn'],
 
+            // 内容列
             ['label' => '申请人',
              'value' => 'application.user.nickname',
             ],
@@ -44,9 +46,10 @@ $this->registerJs($js);
             ['label' => '状态',
              'value' => 'statusStr',
              'contentOptions' => function($model) {
-                return ($model->status== Audit::STATUS_UNAUDITED)?['class'=>'text-danger']:[];
+                 return ($model->status== Audit::STATUS_UNAUDITED)?['class'=>'text-danger']:[];
             }],
 
+            // 动作列
             ['class' => 'yii\grid\ActionColumn',
                 'template' => '{view}',
                 'buttons' => [
@@ -65,7 +68,6 @@ $this->registerJs($js);
         ],
         'emptyText'=>'当前没有申请, 无需审核~',
         'emptyTextOptions'=>['style'=>'color:red;font-weight:bold;font-size:24px'],
-        // 'layout' => "{summary}\n{items}\n{pager}"
         'showOnEmpty'=>false,
     ]); ?>
 </div>

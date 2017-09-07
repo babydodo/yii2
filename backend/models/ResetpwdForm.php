@@ -14,6 +14,7 @@ class ResetpwdForm extends Model
     public $password_repeat;
 
     /**
+     * 属性验证规则
      * @inheritdoc
      */
     public function rules()
@@ -27,6 +28,9 @@ class ResetpwdForm extends Model
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
     public function attributeLabels()
     {
     	return [

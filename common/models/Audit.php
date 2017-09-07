@@ -2,8 +2,6 @@
 
 namespace common\models;
 
-use Yii;
-
 /**
  * audit表模型类
  *
@@ -32,14 +30,16 @@ class Audit extends \yii\db\ActiveRecord
     }
 
     /**
+     * 属性验证规则
      * @inheritdoc
      */
     public function rules()
     {
         return [
+            ['remark', 'trim'],
             [['application_id', 'adminuser_id'], 'required'],
             [['application_id', 'adminuser_id', 'status', 'audit_at'], 'integer'],
-            ['remark', 'trim'],
+            ['status', 'in', 'range' => [self::STATUS_FAILED, self::STATUS_UNAUDITED, self::STATUS_PASS] ],
             [['remark'], 'string', 'max' => 255],
             [['application_id'], 'exist', 'skipOnError' => true, 'targetClass' => Application::className(), 'targetAttribute' => ['application_id' => 'id']],
             [['adminuser_id'], 'exist', 'skipOnError' => true, 'targetClass' => Adminuser::className(), 'targetAttribute' => ['adminuser_id' => 'id']],
@@ -66,6 +66,7 @@ class Audit extends \yii\db\ActiveRecord
     }
 
     /**
+     * 在保存之前的处理
      * @param bool $insert
      * @return bool
      */
@@ -98,7 +99,7 @@ class Audit extends \yii\db\ActiveRecord
     }
 
     /**
-     * @return string
+     * @return string status属性值对应的中文
      */
     public function getStatusStr()
     {
@@ -112,7 +113,7 @@ class Audit extends \yii\db\ActiveRecord
 
     /**
      * @param int|null $adminuser_id
-     * @return string
+     * @return string|null 管理员对应的待审核申请数
      */
     public static function getUnauditedCount($adminuser_id = null)
     {

@@ -1,4 +1,5 @@
 <?php
+
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
 use yii\helpers\Url;
@@ -11,7 +12,6 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 
 <?php
-// 自定义js
 $js = <<<JS
 $('form#resetpwd-form').on('beforeSubmit', function(e) {
     $('#modal_id').modal('toggle');

@@ -25,6 +25,7 @@ class UserController extends Controller
      */
     public function behaviors()
     {
+        // 控制器只允许系主任角色访问
         return [
             'access' => [
                 'class' => AccessControl::className(),
@@ -51,6 +52,7 @@ class UserController extends Controller
 
     /**
      * 列出所有用户信息
+     * @return string
      */
     public function actionIndex()
     {
@@ -65,12 +67,15 @@ class UserController extends Controller
 
     /**
      * 新增一个用户
+     * @return Response|string
      */
     public function actionCreate()
     {
         $model = new CreateUserForm();
 
+        // 块赋值与验证保存
         if ($model->load(Yii::$app->request->post()) && $model->createUser()) {
+            // 操作成功提示信息
             Yii::$app->getSession()->setFlash('success', '新增用户成功');
             return $this->redirect(['index']);
         } else {
@@ -80,14 +85,16 @@ class UserController extends Controller
 
     /**
      * 更新一个用户的信息
-     * @param $id
-     * @return array|string
+     * @param integer $id
+     * @return Response|string
      */
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
 
+        // 块赋值与验证保存
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            // 操作成功提示信息
             Yii::$app->getSession()->setFlash('success', '修改资料成功');
             return $this->redirect(['index']);
         } else {
@@ -97,7 +104,7 @@ class UserController extends Controller
 
     /**
      * 验证新增与修改表单
-     * @param null $id
+     * @param null|integer $id
      * @return array
      */
     public function actionValidateSave($id = null)
@@ -110,13 +117,14 @@ class UserController extends Controller
 
     /**
      * 更新用户密码
-     * @param $id
-     * @return string|Response
+     * @param integer $id
+     * @return boolean|string
      */
     public function actionResetpwd($id)
     {
         $model = new ResetpwdForm();
 
+        // 块赋值与重置密码
         if ($model->load(Yii::$app->request->post()) && $model->resetPassword($this->findModel($id))) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             return true;
@@ -139,22 +147,20 @@ class UserController extends Controller
 
     /**
      * 删除一个用户
-     * @param $id
+     * @param integer $id
      * @return Response
      */
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
         return $this->redirect(['index']);
     }
 
     /**
      * 根据id找到对应用户记录
-     * 如果记录不存在则跳转到404页面
-     * @param $id
+     * @param integer $id
      * @return User
-     * @throws NotFoundHttpException
+     * @throws NotFoundHttpException 如果记录不存在则跳转到404页面
      */
     protected function findModel($id)
     {

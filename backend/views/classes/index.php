@@ -34,20 +34,20 @@ $js = <<<JS
         );
     });
     
-    let class_id;
     $('.show-courses').on('click',function () {
         $('#modal_id').find('.modal-title').html('{$dropDownList}');
-        class_id = $(this).closest('tr').data('key');
+        let class_id = $(this).closest('tr').data('key');
         $.get('{$showCoursesUrl}', { id:class_id },
             function (data) {
                 $('#modal_id').find('.modal-body').html(data);
             }
         );
-    });
-    
-    $(document).on('change', '#drop-down-list', function () {
-        $.get('{$showCoursesUrl}', { id:class_id, week:$(this).val() }, function (data) {
-            $('#modal_id').find('.modal-body').html(data);
+        
+        // modal头部下拉框事件
+        $('.modal-title').off('change').on('change', '#drop-down-list', function () {
+            $.get('{$showCoursesUrl}', { id:class_id, week:$(this).val() }, function (data) {
+                $('#modal_id').find('.modal-body').html(data);
+            });
         });
     });
     
@@ -78,8 +78,10 @@ $this->registerJs($js);
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'columns' => [
+            // 序号列
             ['class' => 'yii\grid\SerialColumn'],
 
+            // 内容列
             'number',
             'name',
             ['label'=>'辅导员',
@@ -87,6 +89,7 @@ $this->registerJs($js);
              'value'=>'adminuser.nickname',
             ],
 
+            // 动作列
             ['class' => 'yii\grid\ActionColumn',
                 'template' => '{show-courses} {update}',
                 'buttons' => [

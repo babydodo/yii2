@@ -9,13 +9,13 @@ use common\models\CourseRelationship;
 use Yii;
 use common\models\Application;
 use yii\data\ActiveDataProvider;
-use yii\helpers\VarDumper;
+use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
+use yii\web\Response;
 
 /**
- * 审核模块控制器
+ * 审核申请模块控制器
  */
 class AuditController extends Controller
 {
@@ -24,11 +24,20 @@ class AuditController extends Controller
      */
     public function behaviors()
     {
+        // 控制器只允许除系主任以外角色访问
         return [
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'delete' => ['POST'],
+            'access' => [
+                'class' => AccessControl::className(),
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'matchCallback' => function ($rule, $action) {
+                            if (!Yii::$app->user->isGuest) {
+                                return Yii::$app->user->identity->role != Adminuser::DIRECTOR ? true : false;
+                            }
+                            return false;
+                        },
+                    ],
                 ],
             ],
         ];
@@ -36,7 +45,7 @@ class AuditController extends Controller
 
     /**
      * 列出所有未审核申请信息
-     * @return mixed
+     * @return string
      */
     public function actionIndex()
     {
@@ -55,7 +64,7 @@ class AuditController extends Controller
     /**
      * 显示单个申请详细信息
      * @param integer $id
-     * @return mixed
+     * @return string
      */
     public function actionView($id)
     {
@@ -67,7 +76,7 @@ class AuditController extends Controller
     /**
      * 审核通过
      * @param integer $id
-     * @return mixed
+     * @return Response
      * @throws \Exception
      */
     public function actionPass($id)
@@ -172,7 +181,7 @@ class AuditController extends Controller
     /**
      * 审核不通过
      * @param integer $id
-     * @return mixed
+     * @return Response
      * @throws \Exception
      */
     public function actionFailed($id)
@@ -207,15 +216,13 @@ class AuditController extends Controller
         }
 
         return $this->redirect(['index']);
-
     }
 
     /**
      * 根据id找到对应申请记录
-     * 如果记录不存在则跳转到404页面
      * @param integer $id
-     * @return Audit the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return Audit
+     * @throws NotFoundHttpException 如果记录不存在则跳转到404页面
      */
     protected function findModel($id)
     {

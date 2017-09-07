@@ -4,23 +4,22 @@ namespace backend\models;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use common\models\Course;
+use common\models\Activity;
 
 /**
- * 课程管理搜索过滤类
+ * Activity模型搜索过滤类
  *
  * @property string classroomName
- * @property string teacher
  */
-class CourseSearch extends Course
+class ActivitySearch extends Activity
 {
     /**
-     * 增加teacher,classroomName属性
+     * 增加classroomName属性
      * @return array
      */
     public function attributes()
     {
-        return array_merge(parent::attributes(), ['teacher','classroomName']);
+        return array_merge(parent::attributes(), ['classroomName']);
     }
 
     /**
@@ -30,8 +29,8 @@ class CourseSearch extends Course
     public function rules()
     {
         return [
-            [['id', 'number', 'user_id', 'day', 'classroom_id'], 'integer'],
-            [['name', 'sec', 'week', 'teacher', 'classroomName'], 'safe'],
+            [['id', 'adminuser_id', 'day', 'classroom_id'], 'integer'],
+            [['name', 'sec', 'week', 'classroomName', 'classes_ids'], 'safe'],
         ];
     }
 
@@ -51,7 +50,9 @@ class CourseSearch extends Course
      */
     public function search($params)
     {
-        $query = Course::find()->orderBy('number'); //排序
+        $query = Activity::find()
+            ->where(['adminuser_id'=>\Yii::$app->user->id])
+            ->orderBy(['activity.id'=>SORT_DESC]); //排序
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -66,27 +67,19 @@ class CourseSearch extends Course
             return $dataProvider;
         }
 
-        // 左连接user表与classroom表
-        $query->joinWith(['user', 'classroom']);
+        // 左连接classroom表
+        $query->joinWith(['classroom']);
 
         // 查询条件
         $query->andFilterWhere([
-            'user_id' => $this->user_id,
             'day' => $this->day,
             'classroom_id' => $this->classroom_id,
         ]);
-        $query->andFilterWhere(['like', 'course.number', $this->number])
-            ->andFilterWhere(['like', 'course.name', $this->name])
-            ->andFilterWhere(['like', 'week', $this->week])
+        $query->andFilterWhere(['like', 'name', $this->name])
             ->andFilterWhere(['like', 'sec', $this->sec])
-            ->andFilterWhere(['like', 'user.nickname', $this->teacher])
+            ->andFilterWhere(['like', 'week', $this->week])
+            ->andFilterWhere(['like', 'classes_ids', $this->classes_ids])
             ->andFilterWhere(['like', 'classroom.name', $this->classroomName]);
-
-        // 增加teacher属性正倒排序
-        $dataProvider->sort->attributes['teacher'] = [
-            'asc'=>['user.nickname'=>SORT_ASC],
-            'desc'=>['user.nickname'=>SORT_DESC],
-        ];
 
         // 增加classroomName属性正倒排序
         $dataProvider->sort->attributes['classroomName'] = [

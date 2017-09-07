@@ -1,12 +1,9 @@
 <?php
 
 use common\models\Adminuser;
-use yii\bootstrap\Alert;
-use yii\bootstrap\Modal;
 use yii\helpers\Html;
 use yii\grid\GridView;
 use yii\helpers\Url;
-use yii\widgets\Pjax;
 
 /* @var $this yii\web\View */
 /* @var $searchModel backend\models\AdminuserSearch */
@@ -17,7 +14,6 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 
 <?php
-// 自定义js
 $createUrl = Url::toRoute('create');
 $updateUrl = Url::toRoute('update');
 $resetpwdUrl = Url::toRoute('resetpwd');
@@ -46,7 +42,7 @@ $js = <<<JS
                 $('#modal_id').find('.modal-body').html(data);
             }
         );
-    });    
+    });
 JS;
 $this->registerJs($js);
 ?>
@@ -66,8 +62,10 @@ $this->registerJs($js);
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'columns' => [
+            // 序号列
             ['class' => 'yii\grid\SerialColumn'],
 
+            // 内容列
             'username',
             'nickname',
             ['attribute'=>'role',
@@ -76,6 +74,7 @@ $this->registerJs($js);
             ],
             'email:email',
 
+            // 动作列
             ['class' => 'yii\grid\ActionColumn',
                 'template' => '{update} {resetpwd} {delete}',
                 'buttons' => [
@@ -88,7 +87,7 @@ $this->registerJs($js);
                             'data-toggle' => 'modal',
                             'data-target' => '#modal_id',
                         ];
-                        return Html::a('<span class="glyphicon glyphicon-pencil"></span>','#',$options);
+                        return Html::a('<span class="glyphicon glyphicon-pencil"></span>', '#', $options);
                     },
 
                     'resetpwd' => function($url,$model,$key) {
@@ -100,7 +99,7 @@ $this->registerJs($js);
                             'data-toggle' => 'modal',
                             'data-target' => '#modal_id',
                         ];
-                        return Html::a('<span class="glyphicon glyphicon-lock"></span>','#',$options);
+                        return Html::a('<span class="glyphicon glyphicon-lock"></span>', '#', $options);
                     },
                 ],
             ],

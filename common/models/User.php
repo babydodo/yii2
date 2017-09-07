@@ -7,7 +7,7 @@ use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
 
 /**
- * User model
+ * user表模型类
  *
  * @property integer $id
  * @property string $username
@@ -36,20 +36,19 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
+     * 属性验证规则
      * @inheritdoc
      */
     public function rules()
     {
-//        return [
-//            ['status', 'default', 'value' => self::STATUS_ACTIVE],
-//            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
-//        ];
         return [
+            [['username', 'nickname'], 'trim'],
             [['username', 'nickname', 'class_id'], 'required'],
             ['class_id', 'integer'],
+            ['class_id', 'exist', 'skipOnError' => true, 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],
             ['username', 'string', 'max' => 255],
             ['nickname', 'string', 'max' => 128],
-            ['username', 'unique'],
+            ['username', 'unique', 'message' => '{attribute}已存在！'],
         ];
     }
 
@@ -63,6 +62,7 @@ class User extends ActiveRecord implements IdentityInterface
             'username' => '学号/职工号',
             'nickname' => '姓名',
             'class_id' => '教师/班级',
+            'className' => '班级',
         ];
     }
 
@@ -125,7 +125,6 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * 根据username找到对应记录
-     *
      * @param string $username
      * @return static|null
      */
@@ -136,7 +135,6 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * 根据password_reset_token找到对应记录
-     *
      * @param string $token password reset token
      * @return static|null
      */
@@ -153,8 +151,7 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * 检验password_reset_token是否有效
-     *
-     * @param string $token password reset token
+     * @param string $token
      * @return bool
      */
     public static function isPasswordResetTokenValid($token)
@@ -193,10 +190,9 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * 验证密码
-     *
-     * @param string $password password to validate
-     * @return bool if password provided is valid for current user
+     * 验证密码是否正确
+     * @param string $password
+     * @return bool
      */
     public function validatePassword($password)
     {
@@ -205,7 +201,6 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * 设置密码
-     *
      * @param string $password
      */
     public function setPassword($password)
@@ -214,7 +209,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Generates "remember me" authentication key
+     * 生成自动登录令牌
      */
     public function generateAuthKey()
     {
@@ -237,8 +232,15 @@ class User extends ActiveRecord implements IdentityInterface
         $this->password_reset_token = null;
     }
 
+    /**
+     * @return array 所有的教师
+     */
     public static function allTeachers()
     {
-        return static::find()->select(['nickname','id'])->where(['class_id'=>self::TEACHER_CLASS])->indexBy('id')->column();
+        return static::find()
+                ->select(['nickname','id'])
+                ->where(['class_id' => self::TEACHER_CLASS])
+                ->indexBy('id')
+                ->column();
     }
 }

@@ -25,6 +25,7 @@ class AdminuserController extends Controller
      */
     public function behaviors()
     {
+        // 控制器只允许系主任角色访问
         return [
             'access' => [
                 'class' => AccessControl::className(),
@@ -51,7 +52,7 @@ class AdminuserController extends Controller
 
     /**
      * 列出所有管理员
-     * @return mixed
+     * @return string
      */
     public function actionIndex()
     {
@@ -67,7 +68,7 @@ class AdminuserController extends Controller
     /**
      * 显示单个管理员详细信息
      * @param integer $id
-     * @return mixed
+     * @return string
      */
     public function actionView($id)
     {
@@ -78,13 +79,15 @@ class AdminuserController extends Controller
 
     /**
      * 新增管理员
-     * @return mixed
+     * @return Response|string
      */
     public function actionCreate()
     {
         $model = new CreateAdminuserForm();
-        // 块赋值验证与保存
+
+        // 块赋值与验证保存
         if($model->load(Yii::$app->request->post()) && $model->createAdminuser()) {
+            // 操作成功提示信息
             Yii::$app->getSession()->setFlash('success', '新增管理员成功');
             return $this->redirect(['index']);
         }
@@ -95,13 +98,15 @@ class AdminuserController extends Controller
     /**
      * 更新单个管理员信息
      * @param integer $id
-     * @return mixed
+     * @return Response|string
      */
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        // 块赋值验证与保存
+
+        // 块赋值与验证保存
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            // 操作成功提示信息
             Yii::$app->getSession()->setFlash('success', '修改资料成功');
             return $this->redirect(['index']);
         } else {
@@ -111,7 +116,7 @@ class AdminuserController extends Controller
 
     /**
      * 验证新增与修改表单
-     * @param null $id
+     * @param null|integer $id
      * @return array
      */
     public function actionValidateSave($id = null)
@@ -123,7 +128,7 @@ class AdminuserController extends Controller
     }
 
     /**
-     * 更新用户密码
+     * 更改管理员密码
      * @param $id
      * @return mixed
      */
@@ -131,6 +136,7 @@ class AdminuserController extends Controller
     {
         $model = new ResetpwdForm();
 
+        // 块赋值与重置密码
         if ($model->load(Yii::$app->request->post()) && $model->resetPassword($this->findModel($id))) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             return true;
@@ -160,7 +166,10 @@ class AdminuserController extends Controller
     {
         try {
             $this->findModel($id)->delete();
+            // 操作成功提示信息
+            Yii::$app->getSession()->setFlash('success', '删除成功');
         } catch (IntegrityException $e) {
+            // 操作失败提示信息
             Yii::$app->getSession()->setFlash('error', '该管理员仍有关联!');
         }
         return $this->redirect(['index']);
@@ -168,10 +177,9 @@ class AdminuserController extends Controller
 
     /**
      * 根据id找到对应管理员记录
-     * 如果记录不存在则跳转到404页面
      * @param integer $id
-     * @return Adminuser the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return Adminuser
+     * @throws NotFoundHttpException 如果记录不存在则跳转到404页面
      */
     protected function findModel($id)
     {

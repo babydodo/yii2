@@ -2,13 +2,14 @@
 
 namespace backend\models;
 
-use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use common\models\Classes;
 
 /**
- * ClassesSearch represents the model behind the search form about `common\models\Classes`.
+ * Classes模型搜索过滤类
+ *
+ * @property string counselor
  */
 class ClassesSearch extends Classes
 {
@@ -22,6 +23,7 @@ class ClassesSearch extends Classes
     }
 
     /**
+     * 属性验证规则
      * @inheritdoc
      */
     public function rules()
@@ -42,44 +44,33 @@ class ClassesSearch extends Classes
     }
 
     /**
-     * Creates data provider instance with search query applied
-     *
+     * 根据过滤条件查询数据
      * @param array $params
-     *
      * @return ActiveDataProvider
      */
     public function search($params)
     {
-        $query = Classes::find()->where(['not',['classes.id'=>1]]);
-
-        // add conditions that should always apply here
+        $query = Classes::find()
+            ->where(['not',['classes.id'=>1]])  //排除教师班
+            ->orderBy('number');  //排序
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'pagination' => ['pageSize'=>10],
+            'pagination' => ['pageSize'=>10],   //分页
         ]);
 
+        // 块赋值查询条件
         $this->load($params);
 
+        // 验证不通过时返回的结果
         if (!$this->validate()) {
-            // uncomment the following line if you do not want to return any records when validation fails
-            // $query->where('0=1');
             return $dataProvider;
         }
 
-        // 等值连接adminuser表与classes表
-        // $query->join('INNER JOIN','adminuser','classes.adminuser_id = adminuser.id');
-        // $query->innerJoin('adminuser');
-        // joinWith()方法默认使用左连接
+        // 左连接adminuser表
         $query->joinWith('adminuser');
 
-
-        // grid filtering conditions
-        $query->andFilterWhere([
-            // 'classes.id' => $this->id,
-            'adminuser_id' => $this->adminuser_id,
-        ]);
-
+        // 查询条件
         $query->andFilterWhere(['like', 'number', $this->number])
             ->andFilterWhere(['like', 'name', $this->name])
             ->andFilterWhere(['like', 'adminuser.nickname', $this->getAttribute('counselor')]);

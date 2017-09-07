@@ -13,7 +13,6 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 
 <?php
-// 自定义js
 $createUrl = Url::toRoute('create');
 $updateUrl = Url::toRoute('update');
 $js = <<<JS
@@ -52,17 +51,19 @@ $this->registerJs($js);
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'columns' => [
+            // 序号列
             ['class' => 'yii\grid\SerialColumn'],
 
+            // 内容列
             'number',
             'name',
-            ['label' => '类型',
-             'attribute' => 'type',
+            ['attribute' => 'type',
              'value' => 'typeStr',
              'filter' => \common\models\Classroom::allTypes(),
             ],
             'amount',
 
+            // 动作列
             ['class' => 'yii\grid\ActionColumn',
                 'template'=>'{update} {delete}',
                 'buttons' => [

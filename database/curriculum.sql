@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: 2017-08-24 17:46:37
+-- Generation Time: 2017-09-08 00:47:37
 -- 服务器版本： 5.7.14
 -- PHP Version: 7.0.10
 
@@ -19,6 +19,30 @@ SET time_zone = "+00:00";
 --
 -- Database: `curriculum`
 --
+
+-- --------------------------------------------------------
+
+--
+-- 表的结构 `activity`
+--
+
+CREATE TABLE `activity` (
+  `id` int(11) NOT NULL,
+  `name` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
+  `adminuser_id` int(11) NOT NULL,
+  `day` tinyint(1) NOT NULL,
+  `sec` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
+  `week` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
+  `classroom_id` int(11) NOT NULL,
+  `classes_ids` varchar(128) COLLATE utf8_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- 转存表中的数据 `activity`
+--
+
+INSERT INTO `activity` (`id`, `name`, `adminuser_id`, `day`, `sec`, `week`, `classroom_id`, `classes_ids`) VALUES
+(1, '444', 4, 3, '2,3', '2,3', 22, '2,4,5');
 
 -- --------------------------------------------------------
 
@@ -53,7 +77,8 @@ INSERT INTO `adminuser` (`id`, `username`, `nickname`, `role`, `auth_key`, `pass
 (11, '946516', '辅导员5', 4, '65IP1i4jJlVPqVfSU4oSYaZ0JqALHJnc', '$2y$13$PgyozATLEQ3Wq6Acq8tOcOsUpwUmf.HHOmx3bWaABrDU5bqwAewLW', NULL, NULL),
 (12, '5916191', '辅导员8', 4, 'hsD5LJRd8YwGihg5FJRhb7D3btnrFOuv', '$2y$13$OoVnS1MCZSG97I2xDjnMJO0rS9gbSyH08h2Rvr7A2hZuJFDeXLOZu', NULL, NULL),
 (13, '654195', '辅导员66', 4, 'pBUn8vKR4Ip4eRKBHVPjSMp-5e1EEM3q', '$2y$13$wdBsYVJ/dGT3LGvpuJVJbeD7yYcYVGGtUvNS12DYOIKdLd4Sh2.0u', NULL, NULL),
-(14, '9841651', '辅导员12', 4, 'rC2vr6PDLD6BgeijQ7BcxeRg_GL27xHM', '$2y$13$nkweHnRwSW466gF6EYo3bODYoQpU5G3DvrtqISMctisyO9l3hR79a', NULL, NULL);
+(14, '9841651', '辅导员12', 4, 'rC2vr6PDLD6BgeijQ7BcxeRg_GL27xHM', '$2y$13$nkweHnRwSW466gF6EYo3bODYoQpU5G3DvrtqISMctisyO9l3hR79a', NULL, NULL),
+(15, '621656', '5646', 4, 'Zow_kB8PWWv3KzYA5886vC8lGm_mysLV', '$2y$13$iBSBlYRyejT.Euj4x.luuOwMH/ibTQ9gz02csnRUnYveBAOt.gwYC', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -83,17 +108,14 @@ CREATE TABLE `application` (
 --
 
 INSERT INTO `application` (`id`, `course_id`, `user_id`, `apply_at`, `apply_week`, `apply_sec`, `adjust_week`, `adjust_day`, `adjust_sec`, `classroom_id`, `teacher_id`, `type`, `reason`, `status`) VALUES
-(7, 3, 6, 1502380522, '1', NULL, '6', 3, '1,2,3,4,5', 2, 6, 1, '无', 0),
-(8, 3, 6, 1502381578, '4', NULL, '10', 3, '1,2,3,4,5', 17, 6, 1, '555', 1),
-(11, 7, 5, 1502552213, '3', NULL, '2', 7, '4,5,6', 23, 5, 1, '7777', 1),
-(13, 7, 5, 1502552733, '1', '3,4,5', '5', 7, '5,6,7,8', 24, 5, 1, '9999', 1),
-(14, 4, 5, 1502810544, '2', '3,4,5', NULL, NULL, NULL, NULL, 5, 2, '11', 1),
-(15, 1, 5, 1502810905, '3', '3,4', NULL, NULL, NULL, NULL, 5, 2, '11', 1),
-(16, 4, 5, 1502811011, '3', '3,4,5', NULL, NULL, NULL, NULL, 5, 2, '5', 1),
-(17, 7, 5, 1502811512, '2', '1,2,3,4', NULL, NULL, NULL, NULL, 5, 2, '9', 1),
-(31, 7, 5, 1502859427, '2', '1,2,3,4', NULL, NULL, NULL, NULL, 5, 2, '111', 1),
-(33, 1, 5, 1502866212, '5', '3,4', NULL, NULL, NULL, NULL, 5, 2, '4', 0),
-(34, 7, 5, 1502866325, '1', '1,2,3,4', NULL, NULL, NULL, NULL, 5, 2, 'e', 2);
+(35, 7, 5, 1503639032, '4', '1,2,3,4', '5', 2, '5,6,7,8', 2, 5, 1, '因病请假', 0),
+(36, 7, 5, 1503639536, '2', '1,2,3,4', '1', 1, '5,6,7,8', 2, 5, 1, '因病请假', 0),
+(37, 7, 5, 1503641517, '2', '1,2,3,4', '4', 3, '4,5,6,7', 2, 5, 1, '因病请假', 0),
+(39, 4, 5, 1503824302, '3', '3,4,5', '5', 4, '8,9,10', 24, 5, 1, '因病请假', 0),
+(40, 4, 5, 1503824663, '4', '3,4,5', '3', 6, '6,7,8', 2, 5, 1, '因公出差', 1),
+(41, 14, 6, 1504452087, '3', '1,2', '3', 4, '4,5', 24, 6, 1, '因公出差', 1),
+(42, 4, 5, 1504628256, '3', '3,4,5', NULL, NULL, NULL, NULL, NULL, 2, '因公出差', 1),
+(43, 4, 5, 1504795787, '3', '3,4,5', '3', 5, '8,9', 25, 5, 1, '因公出差', 1);
 
 -- --------------------------------------------------------
 
@@ -115,18 +137,17 @@ CREATE TABLE `audit` (
 --
 
 INSERT INTO `audit` (`id`, `application_id`, `adminuser_id`, `status`, `audit_at`, `remark`) VALUES
-(6, 7, 4, 2, 1502379122, NULL),
-(7, 7, 5, 2, 1502379153, NULL),
-(8, 7, 6, 0, 1502380522, '111'),
-(9, 8, 4, 1, NULL, NULL),
-(10, 13, 4, 1, NULL, NULL),
-(11, 14, 6, 1, NULL, NULL),
-(12, 15, 6, 1, NULL, NULL),
-(13, 16, 6, 1, NULL, NULL),
-(14, 17, 6, 1, NULL, NULL),
-(28, 31, 6, 1, NULL, NULL),
-(30, 33, 6, 0, 1502866553, '111'),
-(31, 34, 6, 2, 1502866530, NULL);
+(33, 35, 5, 0, 1503639072, '111'),
+(34, 36, 4, 0, 1503639904, '111'),
+(35, 36, 5, 2, 1503639562, NULL),
+(36, 37, 4, 0, 1503822619, '就是不同意'),
+(38, 39, 6, 0, 1503824582, NULL),
+(39, 40, 5, 1, NULL, NULL),
+(40, 41, 4, 1, NULL, NULL),
+(41, 41, 7, 1, NULL, NULL),
+(42, 41, 9, 1, NULL, NULL),
+(43, 42, 6, 1, NULL, NULL),
+(44, 43, 5, 1, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -194,7 +215,11 @@ INSERT INTO `classroom` (`id`, `number`, `name`, `type`, `amount`) VALUES
 (21, 3304, '三教304', 0, 1),
 (22, 3306, '三教306', 0, 1),
 (23, 3308, '三教308', 0, 1),
-(24, 3310, '三教310', 0, 1);
+(24, 3310, '三教310', 0, 1),
+(25, 6220, '计算中心220', 1, 1),
+(26, 6222, '计算中心222', 1, 1),
+(27, 1110, '一教110', 0, 1),
+(28, 1112, '一教112', 0, 1);
 
 -- --------------------------------------------------------
 
@@ -338,6 +363,14 @@ INSERT INTO `user` (`id`, `username`, `nickname`, `class_id`, `auth_key`, `passw
 --
 
 --
+-- Indexes for table `activity`
+--
+ALTER TABLE `activity`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `adminuser_id` (`adminuser_id`),
+  ADD KEY `classroom_id` (`classroom_id`);
+
+--
 -- Indexes for table `adminuser`
 --
 ALTER TABLE `adminuser`
@@ -424,20 +457,25 @@ ALTER TABLE `user`
 --
 
 --
+-- 使用表AUTO_INCREMENT `activity`
+--
+ALTER TABLE `activity`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+--
 -- 使用表AUTO_INCREMENT `adminuser`
 --
 ALTER TABLE `adminuser`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 --
 -- 使用表AUTO_INCREMENT `application`
 --
 ALTER TABLE `application`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 --
 -- 使用表AUTO_INCREMENT `audit`
 --
 ALTER TABLE `audit`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 --
 -- 使用表AUTO_INCREMENT `classes`
 --
@@ -447,17 +485,17 @@ ALTER TABLE `classes`
 -- 使用表AUTO_INCREMENT `classroom`
 --
 ALTER TABLE `classroom`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 --
 -- 使用表AUTO_INCREMENT `course`
 --
 ALTER TABLE `course`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 --
 -- 使用表AUTO_INCREMENT `course_relationship`
 --
 ALTER TABLE `course_relationship`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=100;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=107;
 --
 -- 使用表AUTO_INCREMENT `elective`
 --
@@ -471,6 +509,13 @@ ALTER TABLE `user`
 --
 -- 限制导出的表
 --
+
+--
+-- 限制表 `activity`
+--
+ALTER TABLE `activity`
+  ADD CONSTRAINT `activity_ibfk_1` FOREIGN KEY (`adminuser_id`) REFERENCES `adminuser` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `activity_ibfk_2` FOREIGN KEY (`classroom_id`) REFERENCES `classroom` (`id`) ON UPDATE CASCADE;
 
 --
 -- 限制表 `application`

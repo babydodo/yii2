@@ -1,9 +1,10 @@
 <?php
 
-/* @var $this yii\web\View */
-
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+
+/* @var $this yii\web\View */
+/* @var $model \backend\models\ExcelUpload  */
 
 $this->title = '停调课管理系统';
 ?>

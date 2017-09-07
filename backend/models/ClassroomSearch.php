@@ -7,7 +7,7 @@ use yii\data\ActiveDataProvider;
 use common\models\Classroom;
 
 /**
- * 教室管理搜索过滤类
+ * Classroom模型搜索过滤类
  */
 class ClassroomSearch extends Classroom
 {
@@ -33,31 +33,29 @@ class ClassroomSearch extends Classroom
     }
 
     /**
-     * 根据过滤条件提供数据
+     * 根据过滤条件查询数据
      * @param array $params
      * @return ActiveDataProvider
      */
     public function search($params)
     {
-        $query = Classroom::find()->orderBy('number');
-
-        // 此处可添加初始表格限制条件
+        $query = Classroom::find()->orderBy('number');  //排序
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'pagination' => ['pageSize'=>10], //分页
+            'pagination' => ['pageSize'=>10],   //分页
         ]);
 
+        // 块赋值查询条件
         $this->load($params);
 
-        // 验证输入数据是否符合规则
+        // 验证不通过时返回的结果
         if (!$this->validate()) {
             return $dataProvider;
         }
 
-        // 表格过滤条件
+        // 查询条件
         $query->andFilterWhere([
-            // 'classroom.id' => $this->id,
             'type' => $this->type,
             'amount' => $this->amount,
         ]);
