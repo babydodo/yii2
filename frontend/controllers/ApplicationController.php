@@ -66,7 +66,7 @@ class ApplicationController extends Controller
             'query' => Application::find()
                 ->where(['user_id'=>Yii::$app->user->id])
                 ->orderBy(['apply_at' => SORT_DESC]),
-            'pagination' => ['pageSize'=>10],   //分页
+            'pagination' => ['defaultPageSize' => 10],  //分页
         ]);
         $dataProvider->setSort(false);
 

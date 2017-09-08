@@ -56,7 +56,7 @@ class ActivitySearch extends Activity
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'pagination' => ['pageSize'=>10], //分页
+            'pagination' => ['defaultPageSize' => 10],  //分页
         ]);
 
         // 块赋值查询条件

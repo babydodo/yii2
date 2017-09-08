@@ -53,7 +53,7 @@ class AuditController extends Controller
             'query' => Audit::find()
                 ->where(['adminuser_id'=>Yii::$app->user->id])
                 ->orderBy(['application_id' => SORT_DESC]),
-            'pagination' => ['pageSize'=>10], //分页
+            'pagination' => ['defaultPageSize' => 10],  //分页
         ]);
 
         return $this->render('index', [
