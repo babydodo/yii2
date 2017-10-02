@@ -179,6 +179,7 @@ class SiteController extends Controller
             $highestColumnIndex = \PHPExcel_Cell::columnIndexFromString($highestColumn);
 
             $tableData = [];
+            // 方法1
             for($row = 2;$row<=$highestRow;$row++){
                 // 写入数据库
 //                $classroom = new Classroom();
@@ -189,6 +190,13 @@ class SiteController extends Controller
 //                $classroom->save();
                 for($col=0;$col< $highestColumnIndex;$col++){
                     $tableData[$row][$col] = $objWorksheet->getCellByColumnAndRow($col,$row)->getValue();
+                }
+            }
+
+            // 方法2
+            foreach ($objWorksheet->getRowIterator() as $row) { // 逐行读取
+                foreach ($row->getCellIterator() as $item) { // 逐列读取
+                    $cell = $item;
                 }
             }
 
