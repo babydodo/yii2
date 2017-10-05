@@ -45,14 +45,15 @@ class Course extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            ['name', 'trim'],
+            [['number','name'], 'trim'],
             [['number', 'name', 'user_id', 'day', 'sec', 'week', 'classroom_id'], 'required'],
             ['classroom_id', 'filter', 'filter' => function ($value) {
                 return Classroom::find()->where(['name'=>$value])->scalar();
             }, 'skipOnArray' => true],
-            [['number', 'user_id', 'day'], 'integer'],
+            [['user_id', 'day'], 'integer'],
             ['day', 'in', 'range' => [1, 2, 3, 4, 5, 6, 7] ],
-            [['name'], 'string', 'max' => 128],
+            ['number', 'string', 'max' => 32],
+            ['name', 'string', 'max' => 128],
             [['sec', 'week'],'filter', 'filter' => function ($value) {
                 return is_array($value)?implode(',', $value):$value;
             }],

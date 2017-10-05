@@ -82,7 +82,7 @@ $this->registerJs($js);
             ['class' => 'yii\grid\SerialColumn'],
 
             // 内容列
-            'number',
+//            'number',
             'name',
             ['label'=>'辅导员',
              'attribute'=>'counselor',

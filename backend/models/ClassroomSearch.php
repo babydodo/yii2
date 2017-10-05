@@ -18,8 +18,8 @@ class ClassroomSearch extends Classroom
     public function rules()
     {
         return [
-            [['id', 'number', 'type', 'amount'], 'integer'],
-            [['name'], 'safe'],
+            [['id', 'type', 'amount'], 'integer'],
+            [['name', 'number'], 'safe'],
         ];
     }
 

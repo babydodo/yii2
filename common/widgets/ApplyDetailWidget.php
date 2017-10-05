@@ -8,7 +8,7 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 
 /**
- * 多按钮小部件
+ * 申请表详情小部件
  * @property Application $application
  * @property boolean $showProgress
  */
@@ -38,12 +38,22 @@ class ApplyDetailWidget extends Widget
         /*
          * 申请表部分
          */
+        // 数据显示处理
         $dayStr = ['', '一', '二', '三', '四', '五', '六', '天'];
         $classesStr = implode(', ', ArrayHelper::getColumn($this->application->course->classes, 'name'));
         $apply_at = \Yii::$app->formatter->asDatetime($this->application->apply_at);
         $before_time = '第'.$this->application->apply_week.'周 星期'.$dayStr[$this->application->course->day].' 第'.$this->application->apply_sec.'节';
-        $this->application->adjust_day == null ? $this->application->adjust_day=0 : null;
+        $this->application->adjust_day == null ? $this->application->adjust_day = 0 : null;
         $after_time = '第' . $this->application->adjust_week . '周 星期' . $dayStr[$this->application->adjust_day] . ' 第' . $this->application->adjust_sec . '节';
+        if (!empty($this->application->remark)) {
+            if ($this->application->type == Application::TYPE_ADJUST) {
+                $remarkStr = '<tr><th>备注</th><td colspan="2">'.$this->application->remark.'</td></tr>';
+            } else {
+                $remarkStr = '<tr><th>备注</th><td>'.$this->application->remark.'</td></tr>';
+            }
+        } else {
+            $remarkStr = '';
+        }
 
         if ($this->application->type == Application::TYPE_ADJUST) {
 
@@ -92,6 +102,7 @@ class ApplyDetailWidget extends Widget
                             <th>事由</th>
                             <td colspan='2'>{$this->application->reason}</td>
                         </tr>
+                        {$remarkStr}
                         <tr>
                             <th>申请时间</th>
                             <td colspan='2'>{$apply_at}</td>
@@ -134,6 +145,7 @@ EOT;
                             <th>事由</th>
                             <td>{$this->application->reason}</td>
                         </tr>
+                        {$remarkStr}
                         <tr>
                             <th>申请时间</th>
                             <td>{$apply_at}</td>
@@ -180,6 +192,7 @@ EOT;
                             <th>事由</th>
                             <td>{$this->application->reason}</td>
                         </tr>
+                        {$remarkStr}
                         <tr>
                             <th>申请时间</th>
                             <td>{$apply_at}</td>

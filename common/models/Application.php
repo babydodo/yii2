@@ -19,6 +19,7 @@ use yii\helpers\ArrayHelper;
  * @property integer $teacher_id
  * @property integer $type
  * @property string $reason
+ * @property string $remark
  * @property integer $status
  *
  * @property Course $course
@@ -81,12 +82,12 @@ class Application extends \yii\db\ActiveRecord
             ['type', 'in', 'range' => [self::TYPE_ADJUST, self::TYPE_SUSPEND, self::TYPE_SCHEDULE] ],
             ['status', 'in', 'range' => [Audit::STATUS_FAILED, Audit::STATUS_UNAUDITED, Audit::STATUS_PASS] ],
             [['apply_week', 'apply_sec', 'adjust_week', 'adjust_sec'], 'string', 'max' => 64],
-            [['reason'], 'string', 'max' => 255],
+            [['reason', 'remark'], 'string', 'max' => 255],
             [['course_id'], 'exist', 'skipOnError' => true, 'targetClass' => Course::className(), 'targetAttribute' => ['course_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
             [['classroom_id'], 'exist', 'skipOnError' => true, 'targetClass' => Classroom::className(), 'targetAttribute' => ['classroom_id' => 'id']],
             [['teacher_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['teacher_id' => 'id']],
-            [['apply_week', 'apply_sec', 'adjust_week', 'adjust_day', 'adjust_sec', 'classroom_id', 'teacher_id'], 'default', 'value' => null],
+            [['apply_week', 'apply_sec', 'adjust_week', 'adjust_day', 'adjust_sec', 'classroom_id', 'teacher_id', 'remark'], 'default', 'value' => null],
             // 自定义验证规则
             ['classroom_id', 'validateClassroom'],
             ['adjust_sec', 'validateFreeTime'],
@@ -254,6 +255,7 @@ class Application extends \yii\db\ActiveRecord
             'teacher_id' => '调整后授课教师',
             'type' => '类型',
             'reason' => '事由',
+            'remark' => '备注',
             'status' => '状态',
             'typeStr' => '类型',
             'statusStr' => '状态',

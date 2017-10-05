@@ -32,10 +32,11 @@ class Classes extends \yii\db\ActiveRecord
     {
         return [
             ['name', 'trim'],
-            [['number', 'name', 'adminuser_id'], 'required'],
+            ['number', 'default', 'value' => '1'],
+            [['name', 'adminuser_id'], 'required'],
             [['number', 'adminuser_id'], 'integer'],
             [['name'], 'string', 'max' => 128],
-            [['number', 'name'], 'unique', 'message' => '{attribute}已存在！'],
+            [['name'], 'unique', 'message' => '{attribute}已存在！'],
             [['adminuser_id'], 'exist', 'skipOnError' => true, 'targetClass' => Adminuser::className(), 'targetAttribute' => ['adminuser_id' => 'id']],
         ];
     }

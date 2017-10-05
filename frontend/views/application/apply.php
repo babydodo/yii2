@@ -238,7 +238,7 @@ $this->registerJs($js);
             <label class="control-label col-sm-3">调整课程</label>
             <div class='col-sm-6'>
                 <div class='input-group'>
-                    <input id='course-info' class='form-control' autocomplete='off' disabled>
+                    <input id='course-info' class='form-control' autocomplete='off' readOnly>
                     <span class='input-group-btn'><?= $courseButton ?></span>
                 </div>
             </div>
@@ -277,7 +277,7 @@ $this->registerJs($js);
                 <label class="control-label col-sm-3">调整后时间段</label>
                 <div class='col-sm-6'>
                     <div class='input-group'>
-                        <input id='time-info' class='form-control' disabled>
+                        <input id='time-info' class='form-control' readOnly>
                         <span class='input-group-btn'><?= $freeTimeButton ?></span>
                     </div>
                 </div>
@@ -342,6 +342,8 @@ $this->registerJs($js);
                     {error}
                 </div>"
         ])->textInput(['maxlength' => true]) ?>
+
+        <?= $form->field($model, 'remark')->textarea(['maxlength' => true, 'placeholder'=>'选填']) ?>
 
         <div class="form-group">
             <div class="col-sm-offset-3 col-sm-6">

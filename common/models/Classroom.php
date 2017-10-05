@@ -34,10 +34,12 @@ class Classroom extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
+            ['number', 'trim'],
             ['name', 'trim'],
             [['number', 'name', 'type', 'amount'], 'required'],
-            [['number', 'type', 'amount'], 'integer'],
+            [['type', 'amount'], 'integer'],
             ['type', 'in', 'range' => [self::TYPE_ORDINARY, self::TYPE_SPECIAL] ],
+            [['number'], 'string', 'max' => 32],
             [['name'], 'string', 'max' => 128],
             [['number', 'name'], 'unique', 'message' => '{attribute}已存在！'],
         ];
@@ -54,7 +56,7 @@ class Classroom extends \yii\db\ActiveRecord
             'name' => '教室名称',
             'type' => '教室类型',
             'typeStr' => '类型',
-            'amount' => '最多容纳班级',
+            'amount' => '容纳人数',
         ];
     }
 
