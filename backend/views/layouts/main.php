@@ -78,7 +78,7 @@ JS;
             ['label' => '班级管理', 'url' => ['/classes/index']],
             ['label' => '教室管理', 'url' => ['/classroom/index']],
             ['label' => '课程管理', 'url' => ['/course/index']],
-            ['label' => '设置', 'url' => ['/site/setting']],
+            ['label' => '数据导入', 'url' => ['/site/setting']],
         ];
     }
 

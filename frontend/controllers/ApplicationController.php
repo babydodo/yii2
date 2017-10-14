@@ -15,6 +15,7 @@ use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
+use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -274,22 +275,26 @@ class ApplicationController extends Controller
     }
 
     /**
-     * 显示教师所有课程(未完善)
+     * 显示教师所有课程
      * @return string
      */
     public function actionAllCourses() {
         $courses = Course::find()
-            ->select(['name', 'id'])
-            ->andWhere(['user_id' => Yii::$app->user->id])
-            ->indexBy('id')
-            ->column();
+            ->innerJoinWith('classes')
+            ->Where(['user_id' => Yii::$app->user->id])
+            ->all();
 
-        $buttons = array();
-        foreach (array_unique($courses) as $key => $course) {
+        $all_courses = [];
+        foreach ($courses as $course) {
+            $all_courses[$course->id] = $course->name. ' @' . implode(' @', ArrayHelper::getColumn($course->classes, 'name'));
+        }
+
+        $buttons = [];
+        foreach (array_unique($all_courses) as $key => $course) {
             $buttons[] = Html::button($course, [
                 'data-key' => $key,
-                'style' => "margin-bottom: 4px;",
-                'class' => 'btn btn-default',
+//                'style' => "margin-bottom: 4px;",
+                'class' => 'btn btn-default btn-block',
             ]);
         }
 

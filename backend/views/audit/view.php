@@ -34,10 +34,10 @@ $this->registerJs($js);
 
     <?= ApplyDetailWidget::widget([
             'application' => $model->application,
-            'showProgress' => false,
+            'showProgress' => $model->status == Audit::STATUS_UNAUDITED ? false : true,
     ]) ?>
 
-    <?php if ($model->application->status == Audit::STATUS_UNAUDITED) {
+    <?php if ($model->status == Audit::STATUS_UNAUDITED) {
 
         ActiveForm::begin(['id'=>'remark-from', 'action'=>null]); ?>
 

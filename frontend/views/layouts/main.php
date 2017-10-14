@@ -37,7 +37,7 @@ AppAsset::register($this);
                 $('#modal_id').find('.modal-body').html(data);
             }
         );
-    });    
+    });
 JS;
     $this->registerJs($js);
     ?>
@@ -66,14 +66,16 @@ JS;
     if (Yii::$app->user->isGuest) {
         $menuItems[] = ['label' => '登陆', 'url' => ['/site/login']];
     } else {
-        $menuItems[] = '<li>'
-            . Html::a('修改密码', '#', [
-                'id'=>'resetpwd',
-                'data-toggle' => 'modal',
-                'data-target' => '#modal_id',
-                'class' => 'btn btn-link'
-            ])
-            . '</li>';
+        $menuItems[] = [
+                'label' => '修改密码',
+                'url' => '#',
+                'linkOptions' => [
+                    'id'=>'resetpwd',
+                    'data-toggle' => 'modal',
+                    'data-target' => '#modal_id',
+                    'class' => 'btn btn-link'
+                ],
+        ];
         $menuItems[] = '<li>'
             . Html::beginForm(['/site/logout'], 'post')
             . Html::submitButton(
@@ -102,8 +104,8 @@ JS;
 <?php Modal::begin([
     'id' => 'modal_id',
     'header' => '<h4 class="modal-title"></h4>',
+//    'size' => 'modal-lg',
 ]); ?>
-
 <?php Modal::end(); ?>
 
 <footer class="footer">

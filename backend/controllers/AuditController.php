@@ -4,12 +4,14 @@ namespace backend\controllers;
 
 use common\models\Adminuser;
 use common\models\Audit;
+use common\models\Classroom;
 use common\models\Course;
 use common\models\CourseRelationship;
 use Yii;
 use common\models\Application;
 use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
+use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -116,25 +118,34 @@ class AuditController extends Controller
                     $newCourse->user_id = $application->teacher_id;
                     $newCourse->day = $application->adjust_day;
 
-                    // 处理sec, 加上同一天中未被申请调整的节次
-                    $course->sec = explode(',', $course->sec);
-                    $application->apply_sec = explode(',', $application->apply_sec);
-                    $diff = array_diff($course->sec, $application->apply_sec);
-                    $newCourse->sec = array_merge($diff, $application->adjust_sec);
-                    sort($newCourse->sec);
-
-                    $newCourse->week = $application->adjust_week;
-                    $newCourse->classroom_id = $application->classroom_id;
-                    $newCourse->save();
-
-                    // 新增班级关联
-                    foreach ($course->classes as $class) {
-                        $newRelation = new CourseRelationship();
-                        $newRelation->class_id = $class->id;
-                        $newRelation->course_id = $newCourse->getAttribute('id');
-                        $newRelation->save();
+                    // 如果是调课 , 还要处理sec, 加上同一天中未被申请调整的节次
+                    if ($application->type == Application::TYPE_ADJUST) {
+                        $course->sec = explode(',', $course->sec);
+                        $application->apply_sec = explode(',', $application->apply_sec);
+                        $application->adjust_sec = explode(',', $application->adjust_sec);
+                        $diff = array_diff($course->sec, $application->apply_sec);
+                        $newCourse->sec = array_merge($diff, $application->adjust_sec);
+                        $a = $newCourse->sec;
+                        sort($a);
+                        $newCourse->sec = $a;
+                    } else {
+                        $newCourse->sec = $application->adjust_sec;
                     }
 
+                    $newCourse->week = $application->adjust_week;
+                    $newCourse->classroom_id = $application->classroom->name;
+
+                    if ($newCourse->save()) {
+                        // 新增班级关联
+                        foreach ($course->classes as $class) {
+                            $newRelation = new CourseRelationship();
+                            $newRelation->class_id = $class->id;
+                            $newRelation->course_id = $newCourse->getAttribute('id');
+                            $newRelation->save();
+                        }
+                    } else {
+                        throw new \Exception('保存失败~');
+                    }
                 }
             }
 

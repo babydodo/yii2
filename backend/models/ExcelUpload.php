@@ -20,6 +20,7 @@ use yii\web\UploadedFile;
  * @property UploadedFile $adminuser
  * @property UploadedFile $student
  * @property UploadedFile $course
+ * @property UploadedFile $admin
  */
 class ExcelUpload extends Model
 {
@@ -28,6 +29,7 @@ class ExcelUpload extends Model
     public $adminuser;
     public $student;
     public $course;
+    public $admin;
 
     /**
      * 属性验证规则
@@ -41,6 +43,7 @@ class ExcelUpload extends Model
             ['adminuser', 'file', 'skipOnEmpty' => true, 'extensions' => ['xls','xlsx'], 'checkExtensionByMimeType' => false],
             ['student', 'file', 'skipOnEmpty' => true, 'extensions' => ['xls','xlsx'], 'checkExtensionByMimeType' => false],
             ['course', 'file', 'skipOnEmpty' => true, 'extensions' => ['xls','xlsx'], 'checkExtensionByMimeType' => false],
+            ['admin', 'file', 'skipOnEmpty' => true, 'extensions' => ['xls','xlsx'], 'checkExtensionByMimeType' => false],
         ];
     }
 
@@ -50,11 +53,12 @@ class ExcelUpload extends Model
     public function attributeLabels()
     {
         return [
-            'teacher' => '教师用户',
-            'classroom' => '教室数据',
-            'adminuser' => '辅导员及班级',
-            'student' => '在校生数据',
-            'course' => '课程数据',
+            'teacher' => '教师名单',
+            'classroom' => '教室列表',
+            'adminuser' => '辅导员&班级',
+            'student' => '学生名单',
+            'course' => '课程列表',
+            'admin' => '管理员名单',
         ];
     }
 
@@ -66,8 +70,8 @@ class ExcelUpload extends Model
     public function importTeacherUsers($file)
     {
         // 数据列配置
-        $username_col = 'B';    // 教师工号
-        $nickname_col = 'C';    // 教师姓名
+        $username_col = 'A';    // 教师工号
+        $nickname_col = 'B';    // 教师姓名
 
         // 导入Excel文件
         $objPHPExcel = PHPExcel_IOFactory::load($file);
@@ -123,10 +127,10 @@ class ExcelUpload extends Model
     public function importClassrooms($file)
     {
         // 数据列配置
-        $number_col = 'B';  // 教室代码
-        $name_col = 'C';    // 教室名称
-        $type_col = 'F';    // 教室类型
-        $amount_col = 'G';  // 容纳人数
+        $number_col = 'A';  // 教室代码
+        $name_col = 'B';    // 教室名称
+        $type_col = 'C';    // 教室类型
+        $amount_col = 'D';  // 容纳人数
 
         // 导入Excel文件
         $objPHPExcel = PHPExcel_IOFactory::load($file);
@@ -188,9 +192,9 @@ class ExcelUpload extends Model
     public function importAdminusers($file)
     {
         // 数据列配置
-        $username_col = 'B';    // 辅导员工号
-        $nickname_col = 'C';    // 辅导员姓名
-        $class_name_col = 'E';  // 班级名称
+        $username_col = 'A';    // 辅导员工号
+        $nickname_col = 'B';    // 辅导员姓名
+        $class_name_col = 'C';  // 班级名称
 
         // 导入Excel文件
         $objPHPExcel = PHPExcel_IOFactory::load($file);
@@ -202,8 +206,9 @@ class ExcelUpload extends Model
         // 遍历excel数据
         $errorRows = [];
         $successNum = 0;
+        // 生成值为 123456 对应的哈希密码
         $password_hash = Yii::$app->security->generatePasswordHash('123456');
-        for ($row = 4; $row <= $highestRow; $row++) {
+        for ($row = 2; $row <= $highestRow; $row++) {
 
             // 开启事务
             $transaction = Yii::$app->db->beginTransaction();
@@ -268,7 +273,7 @@ class ExcelUpload extends Model
         // 数据列配置
         $username_col = 'A';    // 学生工号
         $nickname_col = 'B';    // 学生姓名
-        $class_col = 'K';       // 所在班级
+        $class_col = 'C';       // 所在班级
 
         // 导入Excel文件
         $objPHPExcel = PHPExcel_IOFactory::load($file);
@@ -336,11 +341,11 @@ class ExcelUpload extends Model
     public function importCourses($file)
     {
         // 数据列配置
-        $course_number_col = 'B';   // 课程序号
-        $course_name_col = 'D';     // 课程名称
-        $class_name_col = 'V';      // 教学班级名称
-        $username_col = 'AH';       // 教师工号
-        $course_col = 'AI';         // 排课信息
+        $course_number_col = 'A';   // 课程序号
+        $course_name_col = 'B';     // 课程名称
+        $class_name_col = 'C';      // 教学班级名称
+        $username_col = 'D';       // 教师工号
+        $course_col = 'E';         // 排课信息
 
         // 导入Excel文件
         $objPHPExcel = PHPExcel_IOFactory::load($file);
@@ -387,19 +392,22 @@ class ExcelUpload extends Model
                     $course->classroom_id = $course_info[4];
                     // 新增课程记录成功
                     if ($course->save()) {
-                        // 新增课程班级关联记录
-                        foreach (explode(' ', trim($class_name_data)) as $value) {
-                            // 查询对应班级记录
-                            $class = Classes::findOne(['name' => $value]);
-                            if (empty($class)) {
-                                throw new \Exception('不存在此班级~');
-                            }
-                            // 新增关联记录
-                            $relation = new CourseRelationship();
-                            $relation->class_id = $class->id;
-                            $relation->course_id = $course->getAttribute('id');
-                            if (!$relation->save()) {
-                                throw new \Exception('保存课程班级关联记录失败~');
+                        // 如果班级列不为空
+                        if (!empty(trim($class_name_data))) {
+                            // 新增课程班级关联记录
+                            foreach (explode(' ', trim($class_name_data)) as $value) {
+                                // 查询对应班级记录
+                                $class = Classes::findOne(['name' => $value]);
+                                if (empty($class)) {
+                                    throw new \Exception('不存在此班级~');
+                                }
+                                // 新增关联记录
+                                $relation = new CourseRelationship();
+                                $relation->class_id = $class->id;
+                                $relation->course_id = $course->getAttribute('id');
+                                if (!$relation->save()) {
+                                    throw new \Exception('保存课程班级关联记录失败~');
+                                }
                             }
                         }
                     } else {
@@ -415,6 +423,64 @@ class ExcelUpload extends Model
                 $transaction->rollback();
                 $errorRows[] = $row;
             }
+        }
+
+        return $this->message($successNum, $errorRows);
+
+    }
+
+    /**
+     * 导入管理员用户数据
+     * @param string $file 导入文件路径
+     * @return array 导入结果
+     */
+    public function importAdmin($file)
+    {
+        // 数据列配置
+        $username_col = 'A';    // 管理员工号
+        $nickname_col = 'B';    // 管理员姓名
+        $role_col = 'C';        // 管理员职位
+
+        // 导入Excel文件
+        $objPHPExcel = PHPExcel_IOFactory::load($file);
+        // 获取第一张表对象
+        $objWorksheet = $objPHPExcel->getSheet(0);
+        // 获取最大行数
+        $highestRow = $objWorksheet->getHighestRow();
+
+        $adminuser = new Adminuser();
+        $data = [];
+        $errorRows = [];
+        $successNum = 0;
+        // 生成值为 123456 对应的哈希密码
+        $password_hash = Yii::$app->security->generatePasswordHash('123456');
+        for ($row = 2; $row <= $highestRow; $row++) {
+            // 数据赋值
+            $adminuser->username = $objWorksheet->getCell($username_col . $row)->getValue();
+            $adminuser->nickname = $objWorksheet->getCell($nickname_col . $row)->getValue();
+            $adminuser->role = $objWorksheet->getCell($role_col . $row)->getValue();
+            $adminuser->password_hash = $password_hash;
+            $adminuser->auth_key = Yii::$app->security->generateRandomString();
+
+            // 验证数据
+            if ($adminuser->validate()) {
+                $data[] = $adminuser->toArray();
+                $successNum++;
+            } else {
+                // 验证不通过的行的数组集
+                $errorRows[] = $row;
+            }
+        }
+
+        // 批量写入数据库
+        if (!empty($data)) {
+            Yii::$app->db->createCommand()->batchInsert(Adminuser::tableName(), [
+                'username',
+                'nickname',
+                'role',
+                'password_hash',
+                'auth_key',
+            ], $data)->execute();
         }
 
         return $this->message($successNum, $errorRows);
@@ -444,7 +510,7 @@ class ExcelUpload extends Model
         $arr = explode(' ', $data);
 
         // 处理day
-        $day = ['','星期一','星期二','星期三','星期四','星期五','星期六','星期日'];
+        $day = ['','星期一','星期二','星期三','星期四','星期五','星期六','星期天'];
         $arr['day'] = array_search($arr[1], $day,true);
 
         // 处理sec

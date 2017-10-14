@@ -43,7 +43,7 @@ $this->registerJs($js);
             'course.name',
             'typeStr',
             'statusStr',
-            'apply_at:date',
+            'apply_at:datetime',
 
             // 动作列
             ['class' => 'yii\grid\ActionColumn',

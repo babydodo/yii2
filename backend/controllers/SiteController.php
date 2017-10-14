@@ -4,8 +4,6 @@ namespace backend\controllers;
 use backend\models\ExcelUpload;
 use backend\models\ResetpwdForm;
 use common\models\Adminuser;
-use common\models\Classes;
-use common\models\Course;
 use Yii;
 use yii\base\Model;
 use yii\bootstrap\ActiveForm;
@@ -48,6 +46,7 @@ class SiteController extends Controller
                             'upload-adminusers',
                             'upload-students',
                             'upload-courses',
+                            'file-download',
                         ],
                         'allow' => true,
                         'matchCallback' => function ($rule, $action) {
@@ -298,6 +297,33 @@ class SiteController extends Controller
     }
 
     /**
+     * 上传并导入管理员用户
+     * @return array|bool|string
+     */
+    public function actionUploadAdmin()
+    {
+        $model = new ExcelUpload();
+
+        // 上传文件
+        $fileDir = $this->uploadFile($model,'admin');
+
+        if ($fileDir) {
+
+            // 导入数据
+            $msg = $model->importAdmin($fileDir);
+
+            // 返回处理结果
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return ['success' => $msg];
+
+        } else {
+            return $this->render('setting', [
+                'model' => $model,
+            ]);
+        }
+    }
+
+    /**
      * 文件上传
      * @param Model $model
      * @param string $attribute ExcelUpload模型属性
@@ -326,67 +352,58 @@ class SiteController extends Controller
     }
 
     /**
+     * 文件下载
+     * @param string $file 文件名
+     * @return bool|Response
+     */
+    public function actionFileDownload($file)
+    {
+        //文件转码
+        $file_name = iconv('utf-8', 'gb2312', $file);
+        // 文件路径
+        $file_path = '../../download/' . $file_name;
+        // 判断文件是否存在
+        if (!file_exists($file_path)) {
+            Yii::$app->getSession()->setFlash('error', '文件不存在...');
+            return $this->redirect(['site/setting']);
+        }
+
+        // 打开文件
+        $fp = fopen($file_path, 'r');
+
+        // 获取文件大小
+        $file_size = filesize($file_path);
+
+        // http响应头
+        header('Content-type: application/octet-stream');   //返回的文件
+        header('Accept-Ranges: bytes');                     //按照字节大小返回
+        header('Accept-Length: ' . $file_size);             //返回文件大小
+        header('Content-Disposition: attachment; filename=' . $file_name);    //客户端弹出的对话框对应的文件名
+
+        // 向客户端返回数据
+        $buffer = 1024;   // 设置输出大小
+        // 为下载安全，设置文件字节读取计数器
+        $file_count = 0;
+        // 判断文件指针是否到了文件结束的位置
+        while (!feof($fp) && ($file_size - $file_count) > 0) {
+            $file_data = fread($fp, $buffer);
+            // 统计读取多少个字节数
+            $file_count += $buffer;
+            // 把部分数据返回给浏览器
+            echo $file_data;
+        }
+        // 关闭文件
+        fclose($fp);
+        return true;
+    }
+
+    /**
      * 测试
      */
     public function actionTest()
     {
-        $course = new Course();
-        $course->number = '45678';
-        $course->name = '测试';
-        $course->user_id = 11;
-        $course->week = [];
-        $course->day = 2;
-        $course->sec = [];
-//                    $course->classroom_id = $course_info[4];
-        $course->classroom_id = '';
-        $course->validate();
 
     }
 
-    /**
-     *
-     * @param array $arr
-     * @return array
-     */
-    private function filter($arr) {
-        // 处理day
-        $day = ['','星期一','星期二','星期三','星期四','星期五','星期六','星期日'];
-        $arr['day'] = array_search($arr[1], $day,true);
-
-        // 处理sec
-        $sec = explode('-', $arr[2]);
-        if (empty($sec[1])) {
-            $arr['sec'] = (int)$sec[0];
-        } else {
-            for ($i=(int)$sec[0];$i<=$sec[1];$i++) {
-                $arr['sec'][] = $i;
-            }
-        }
-
-        // 处理week
-        preg_match('/(.*)\[(\d+)-?(\d*)\]/', trim($arr[3]), $match);
-        $arr['week'] = [];
-        if (empty($match[3])) {
-            $arr['week'] = (int)$match[2];
-        } elseif (empty($match[1])) {
-            for ($j=(int)$match[2];$j<=(int)$match[3];$j++) {
-                $arr['week'][] = $j;
-            }
-        } elseif ($match[1] == '单') {
-            for ($j=(int)$match[2];$j<=(int)$match[3];$j++) {
-                if ($j%2==1) {
-                    $arr['week'][] = $j;
-                }
-            }
-        } elseif ($match[1] == '双') {
-            for ($j=(int)$match[2];$j<=(int)$match[3];$j++) {
-                if ($j%2==0) {
-                    $arr['week'][] = $j;
-                }
-            }
-        }
-
-        return $arr;
-    }
 
 }

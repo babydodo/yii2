@@ -8,6 +8,7 @@ use common\models\Adminuser;
 use Yii;
 use common\models\User;
 use backend\models\UserSearch;
+use yii\db\IntegrityException;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -152,7 +153,14 @@ class UserController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
+        try {
+            $this->findModel($id)->delete();
+            // 操作成功提示信息
+            Yii::$app->getSession()->setFlash('success', '删除成功');
+        } catch (IntegrityException $e) {
+            // 操作失败提示信息
+            Yii::$app->getSession()->setFlash('error', '该用户仍有关联!');
+        }
         return $this->redirect(['index']);
     }
 
