@@ -93,7 +93,7 @@ $js = <<<JS
                 // modal表格每个单元格点击事件
                 $(modal_body).off('click').on('click', 'td', function() {  
                     if ($(this).text()) {                  
-                        let dayStr = '星期'+dayArray[$(this).data('day')];
+                        let dayStr = '周'+dayArray[$(this).data('day')];
                         let secStart = $(this).data('sec');
                         let secStop = parseInt($(this).data('sec'))+parseInt($(this).attr('rowspan'))-1;
                         let secStr = '';
@@ -104,7 +104,8 @@ $js = <<<JS
                         }
                         secStr += secStop;
                         let courseStr = $(this).text().split(' ')[0];
-                        course_info.val(dayStr+' '+secStart+'-'+secStop+'节 '+courseStr);
+                        let classesStr = $(this).text().split(' ')[2];
+                        course_info.val(dayStr+' '+secStart+'-'+secStop+'节 '+courseStr+' '+classesStr);
                         course_id.val($(this).data('id'));
                         apply_sec.val(secStr);
                         modal.modal('hide');
@@ -156,7 +157,7 @@ $js = <<<JS
                     }
                     
                     adjustSec = secArray.sort( function(a, b){return a-b;} ).toString();
-                    timeStr = adjustSec===''?'':'星期' + dayArray[day] + '('+adjustSec+')节';
+                    timeStr = adjustSec===''?'':'周' + dayArray[day] + '('+adjustSec+')节';
                 }
             });
             

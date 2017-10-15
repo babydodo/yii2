@@ -275,7 +275,7 @@ class ApplicationController extends Controller
     }
 
     /**
-     * 显示教师所有课程
+     * 显示教师所有课程(排课用)
      * @return string
      */
     public function actionAllCourses() {
@@ -348,10 +348,11 @@ class ApplicationController extends Controller
         $id = $model->getAttribute('id');
         // 如果不是申请停课
         if ($model->type != Application::TYPE_SUSPEND) {
-            // step.1 判断地点是否为机房或实验室
+            // step.1 判断地点为特殊还是普通
             $classroom = Classroom::findOne($model->getAttribute('classroom_id'));
+            // 特殊教室
             if ($classroom->type == Classroom::TYPE_SPECIAL) {
-                // 推送给实验中心主任审核
+                // 推送给实验中心副主任审核
                 $laboratories = Adminuser::findAll(['role' => Adminuser::LABORATORY]);
                 foreach ($laboratories as $laboratory) {
                     $audit = new Audit();
@@ -359,26 +360,26 @@ class ApplicationController extends Controller
                     $audit->application_id = $id;
                     $audit->save();
                 }
+            } elseif($classroom->type == Classroom::TYPE_ORDINARY) {
+                // 普通地点则推送给院办
+                $offices = Adminuser::findAll(['role' => Adminuser::OFFICE]);
+                foreach ($offices as $office) {
+                    $audit = new Audit();
+                    $audit->adminuser_id = $office->id;
+                    $audit->application_id = $id;
+                    $audit->save();
+                }
             }
 
             // step.2 推送对应班级辅导审核
+            // 查询授课班级对应辅导员
             $course = Course::findOne($model->getAttribute('course_id'));
             $adminuser_id = array();
             foreach ($course->classes as $class) {
                 $adminuser_id[] = $class->adminuser_id;
             }
-            // 如果课程授课班级为空(即公选课等)且地点不为机房
-            if (empty($adminuser_id) && $classroom->type == Classroom::TYPE_ORDINARY) {
-                // 直接推送给教学副院长
-                $deans = Adminuser::findAll(['role' => Adminuser::DEAN]);
-                foreach ($deans as $dean) {
-                    $audit = new Audit();
-                    $audit->adminuser_id = $dean->id;
-                    $audit->application_id = $id;
-                    $audit->save();
-                }
-            } else {
-                // 推送给辅导员
+            // 如果不为空,推送给相应辅导员
+            if (!empty($adminuser_id)) {
                 $adminusers = array_unique($adminuser_id);
                 foreach ($adminusers as $adminuser) {
                     $audit = new Audit();
@@ -386,6 +387,15 @@ class ApplicationController extends Controller
                     $audit->application_id = $id;
                     $audit->save();
                 }
+
+                // 直接推送给教学副院长
+//                $deans = Adminuser::findAll(['role' => Adminuser::DEAN]);
+//                foreach ($deans as $dean) {
+//                    $audit = new Audit();
+//                    $audit->adminuser_id = $dean->id;
+//                    $audit->application_id = $id;
+//                    $audit->save();
+//                }
             }
             return true;
             // 如果是申请停课,则直接推送给教学副院长审核

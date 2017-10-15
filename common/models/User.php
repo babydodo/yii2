@@ -59,10 +59,10 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return [
             'id' => 'ID',
-            'username' => '学号/职工号',
+            'username' => '工号',
             'nickname' => '姓名',
             'class_id' => '教师/班级',
-            'className' => '班级',
+            'className' => '教师 / 班级',
         ];
     }
 
@@ -243,4 +243,13 @@ class User extends ActiveRecord implements IdentityInterface
                 ->indexBy('id')
                 ->column();
     }
+
+//    /**
+//     * @return array 获取辅导员所带全部学生
+//     */
+//    public static function getAllStudents()
+//    {
+//        $classes_ids = Classes::find()->where(['adminuser_id' => Yii::$app->user->id])->column();
+//        return static::find()->where(['class_id' => $classes_ids])->all();
+//    }
 }

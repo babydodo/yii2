@@ -455,10 +455,18 @@ class ExcelUpload extends Model
         // 生成值为 123456 对应的哈希密码
         $password_hash = Yii::$app->security->generatePasswordHash('123456');
         for ($row = 2; $row <= $highestRow; $row++) {
+            $role = [
+                Adminuser::BOSS => '院长',
+                Adminuser::DEAN => '教学副院长',
+                Adminuser::OFFICE => '院办',
+                Adminuser::DIRECTOR => '系主任',
+                Adminuser::LABORATORY => '实验中心副主任',
+            ];
+
             // 数据赋值
             $adminuser->username = $objWorksheet->getCell($username_col . $row)->getValue();
             $adminuser->nickname = $objWorksheet->getCell($nickname_col . $row)->getValue();
-            $adminuser->role = $objWorksheet->getCell($role_col . $row)->getValue();
+            $adminuser->role = array_search(trim($objWorksheet->getCell($role_col . $row)->getValue()), $role);
             $adminuser->password_hash = $password_hash;
             $adminuser->auth_key = Yii::$app->security->generateRandomString();
 
@@ -480,6 +488,7 @@ class ExcelUpload extends Model
                 'role',
                 'password_hash',
                 'auth_key',
+                'email',
             ], $data)->execute();
         }
 

@@ -95,7 +95,7 @@ class Course extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'number' => '课程代号',
+            'number' => '课程序号',
             'name' => '课程名',
             'user_id' => '教师',
             'teacher' => '教师',

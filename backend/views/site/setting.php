@@ -146,7 +146,7 @@ $this->params['breadcrumbs'][] = $this->title;
         // 插件配置
         'pluginOptions' => [
             // 异步上传的接口地址
-            'uploadUrl' => Url::toRoute(['/site/upload-courses']),
+            'uploadUrl' => Url::toRoute(['/site/upload-admin']),
             // 是否显示预览区域
             'showPreview' => false,
             // 允许接收的文件后缀

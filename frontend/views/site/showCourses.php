@@ -8,6 +8,7 @@ use yii\helpers\Url;
 /* @var $this yii\web\View */
 /* @var $activities common\models\Activity */
 /* @var $courses common\models\Course */
+/* @var $showClasses boolean */
 
 $this->title = '个人课表';
 $this->params['breadcrumbs'][] = $this->title;
@@ -46,6 +47,7 @@ $this->registerJs($js);
             <?= CoursesWidget::widget([
                     'activities' => $activities,
                     'courses'=>$courses,
+                    'showClasses' => $showClasses,
                 ]) ?>
         </div>
 

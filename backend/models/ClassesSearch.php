@@ -2,6 +2,8 @@
 
 namespace backend\models;
 
+use common\models\Adminuser;
+use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use common\models\Classes;
@@ -52,7 +54,12 @@ class ClassesSearch extends Classes
     {
         $query = Classes::find()
             ->where(['not',['classes.id'=>1]])  //排除教师班
-            ->orderBy('number');  //排序
+            ->orderBy(['adminuser_id' => SORT_ASC, 'id' => SORT_ASC]);  //排序
+
+        // 如果角色是辅导员,则只能查询所带班级
+        if (Yii::$app->user->identity->role == Adminuser::COUNSELOR) {
+            $query->andWhere(['adminuser_id' => Yii::$app->user->id]);
+        }
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,

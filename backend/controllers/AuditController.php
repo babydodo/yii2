@@ -4,14 +4,12 @@ namespace backend\controllers;
 
 use common\models\Adminuser;
 use common\models\Audit;
-use common\models\Classroom;
 use common\models\Course;
 use common\models\CourseRelationship;
 use Yii;
 use common\models\Application;
 use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
-use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -26,7 +24,7 @@ class AuditController extends Controller
      */
     public function behaviors()
     {
-        // 控制器只允许除系主任以外角色访问
+        // 控制器只允许教学副院长,院办,实验中心副主任,辅导员访问
         return [
             'access' => [
                 'class' => AccessControl::className(),
@@ -35,7 +33,8 @@ class AuditController extends Controller
                         'allow' => true,
                         'matchCallback' => function ($rule, $action) {
                             if (!Yii::$app->user->isGuest) {
-                                return Yii::$app->user->identity->role != Adminuser::DIRECTOR ? true : false;
+                                $roles = [Adminuser::DEAN, Adminuser::OFFICE, Adminuser::LABORATORY, Adminuser::COUNSELOR];
+                                return in_array(Yii::$app->user->identity->role, $roles,true);
                             }
                             return false;
                         },
@@ -162,7 +161,7 @@ class AuditController extends Controller
                         break;
                     }
                 }
-                // 如果辅导员与实验中心主任审核都通过则推送至教学副院长做最终审核
+                // 如果其他角色审核都通过则推送至教学副院长做最终审核
                 if ($push) {
                     $deans = Adminuser::findAll(['role' => Adminuser::DEAN]);
                     foreach ($deans as $dean) {

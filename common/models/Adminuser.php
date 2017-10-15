@@ -24,10 +24,12 @@ use yii\base\NotSupportedException;
  */
 class Adminuser extends ActiveRecord implements IdentityInterface
 {
-    const DIRECTOR = 1;
-    const DEAN = 2;
-    const LABORATORY = 3;
-    const COUNSELOR = 4;
+    const BOSS = 1;         // 院长
+    const DEAN = 2;         // 教学副院长
+    const OFFICE = 3;       // 院办
+    const DIRECTOR = 4;     // 系主任
+    const LABORATORY = 5;   // 实验中心副主任
+    const COUNSELOR = 6;    // 辅导员
 
     /**
      * @inheritdoc
@@ -50,7 +52,14 @@ class Adminuser extends ActiveRecord implements IdentityInterface
             ['username', 'unique', 'message' => '{attribute}已存在！'],
             ['nickname', 'string', 'max' => 128],
             ['role', 'integer'],
-            ['role', 'in', 'range' => [self::DIRECTOR, self::DEAN, self::LABORATORY, self::COUNSELOR]],
+            ['role', 'in', 'range' => [
+                self::BOSS,
+                self::DEAN,
+                self::OFFICE,
+                self::DIRECTOR,
+                self::LABORATORY,
+                self::COUNSELOR,
+            ]],
             ['email', 'email'],
             ['email', 'default', 'value' => null],
         ];
@@ -63,7 +72,7 @@ class Adminuser extends ActiveRecord implements IdentityInterface
     {
         return [
             'id' => 'ID',
-            'username' => '教职工号',
+            'username' => '工号',
             'nickname' => '姓名',
             'role' => '角色',
             'email' => '邮箱',
@@ -218,9 +227,11 @@ class Adminuser extends ActiveRecord implements IdentityInterface
     public function getRoleStr()
     {
         $roleStr = [
-            self::DIRECTOR  => '系主任',
-            self::DEAN      => '教学副院长',
-            self::LABORATORY => '实验中心主任',
+            self::BOSS => '院长',
+            self::DEAN => '教学副院长',
+            self::OFFICE => '院办',
+            self::DIRECTOR => '系主任',
+            self::LABORATORY => '实验中心副主任',
             self::COUNSELOR => '辅导员',
         ];
         return $roleStr[$this->role];
@@ -232,9 +243,11 @@ class Adminuser extends ActiveRecord implements IdentityInterface
     public static function allRoles()
     {
         return [
-            self::DIRECTOR => '系主任',
+            self::BOSS => '院长',
             self::DEAN => '教学副院长',
-            self::LABORATORY => '实验中心主任',
+            self::OFFICE => '院办',
+            self::DIRECTOR => '系主任',
+            self::LABORATORY => '实验中心副主任',
             self::COUNSELOR => '辅导员',
         ];
     }

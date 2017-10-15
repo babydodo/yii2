@@ -42,12 +42,15 @@ $this->registerJs($js);
             ['label' => '调整类型',
              'value' => 'application.typeStr',
             ],
-            'application.apply_at:date',
-            ['label' => '状态',
+            'application.apply_at:datetime',
+            ['label' => '我的审核',
              'value' => 'statusStr',
              'contentOptions' => function($model) {
                  return ($model->status== Audit::STATUS_UNAUDITED)?['class'=>'text-danger']:[];
             }],
+            ['label' => '最终审核',
+             'value' => 'application.statusStr',
+            ],
 
             // 动作列
             ['class' => 'yii\grid\ActionColumn',
@@ -67,7 +70,7 @@ $this->registerJs($js);
             ],
         ],
         'emptyText'=>'当前没有申请, 无需审核~',
-        'emptyTextOptions'=>['style'=>'color:red;font-weight:bold;font-size:24px'],
+        'emptyTextOptions'=>['style'=>'color:red;font-weight:bold;font-size:20px'],
         'showOnEmpty'=>false,
     ]); ?>
 </div>

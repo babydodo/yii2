@@ -68,7 +68,8 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+//        return $this->render('index');
+        return $this->redirect(['login']);
     }
 
     /**
@@ -78,7 +79,8 @@ class SiteController extends Controller
     public function actionLogin()
     {
         if (!Yii::$app->user->isGuest) {
-            return $this->goHome();
+//            return $this->goHome();
+            return $this->redirect(['show-courses']);
         }
 
         $model = new LoginForm();
@@ -113,9 +115,11 @@ class SiteController extends Controller
 
         if (Yii::$app->user->identity->class_id == User::TEACHER_CLASS) {
             // 教师课表
+            $showClasses = true;
             $courses = $model->andWhere(['user_id'=>Yii::$app->user->id])->all();
             $activities = [];
         } else {
+            $showClasses = false;
             // part.1 学生课表
             $modelCopy = clone $model;
             $stuClassId = Yii::$app->user->identity->class_id;
@@ -142,12 +146,14 @@ class SiteController extends Controller
             return CoursesWidget::widget([
                 'activities' => $activities,
                 'courses'=>$courses,
+                'showClasses' => $showClasses,
             ]);
         }
 
         return $this->render('showCourses', [
             'activities' => $activities,
             'courses' => $courses,
+            'showClasses' => $showClasses,
         ]);
     }
 

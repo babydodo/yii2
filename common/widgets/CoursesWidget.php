@@ -5,6 +5,7 @@ use common\models\Activity;
 use common\models\Application;
 use common\models\Course;
 use yii\base\Widget;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 
 /**
@@ -21,7 +22,10 @@ class CoursesWidget extends Widget
     public $applications = [];
     public $activities = [];
     public $courses = [];
+    // 是否单个显示(默认合并单元格)
     public $single = false;
+    // 是否显示班级
+    public $showClasses = false;
 
     protected $tbody;
 
@@ -96,7 +100,7 @@ EOT;
                         // $sec 节的具体数组单元
                         foreach ($sec as $key => $value) {
                             // 填充课程对应单元格的内容(不合并)
-                            $this->tbody[$value][$application->adjust_day] = Html::tag('td', '#', [
+                            $this->tbody[$value][$application->adjust_day] = Html::tag('td', '不可用', [
                                 'style' => [
                                     'vertical-align' => 'middle',
                                     'text-align'=>'center',
@@ -122,7 +126,7 @@ EOT;
                     foreach ($sec as $key => $value) {
                         if ($this->single) {
                             // 填充课程对应单元格的内容(不合并)
-                            $this->tbody[$value][$activity->day] = Html::tag('td', '#', [
+                            $this->tbody[$value][$activity->day] = Html::tag('td', '不可用', [
                                 'style' => [
                                     'vertical-align' => 'middle',
                                     'text-align'=>'center',
@@ -166,7 +170,7 @@ EOT;
                     foreach ($sec as $key => $value) {
                         if ($this->single) {
                             // 填充课程对应单元格的内容(不合并)
-                            $this->tbody[$value][$course->day] = Html::tag('td', '#', [
+                            $this->tbody[$value][$course->day] = Html::tag('td', '不可用', [
                                 'style' => [
                                     'vertical-align' => 'middle',
                                     'text-align'=>'center',
@@ -181,6 +185,11 @@ EOT;
                                 $teacher = $course->user->getAttribute('nickname');
                                 $classroom = $course->classroom->getAttribute('name');
                                 $content = $course->name . '<br />@' . $classroom . ' @' . $teacher;
+                                // 加上班级信息
+                                if ($this->showClasses) {
+                                    $classes = ' @'.implode(',', ArrayHelper::getColumn($course->classes, 'name'));
+                                    $content .= $classes;
+                                }
                                 $this->tbody[$value][$course->day] = Html::tag('td', $content, [
                                     'style' => ['vertical-align' => 'middle'],
                                     'class' => 'info',

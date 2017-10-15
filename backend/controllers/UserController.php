@@ -26,7 +26,7 @@ class UserController extends Controller
      */
     public function behaviors()
     {
-        // 控制器只允许系主任角色访问
+        // 控制器允许院长,教学副院长,院办,系主任,辅导员访问
         return [
             'access' => [
                 'class' => AccessControl::className(),
@@ -35,7 +35,14 @@ class UserController extends Controller
                         'allow' => true,
                         'matchCallback' => function ($rule, $action) {
                             if (!Yii::$app->user->isGuest) {
-                                return Yii::$app->user->identity->role == Adminuser::DIRECTOR ? true : false;
+                                $roles = [
+                                    Adminuser::BOSS,
+                                    Adminuser::DEAN,
+                                    Adminuser::OFFICE,
+                                    Adminuser::DIRECTOR,
+                                    Adminuser::COUNSELOR,
+                                ];
+                                return in_array(Yii::$app->user->identity->role, $roles,true);
                             }
                             return false;
                         },

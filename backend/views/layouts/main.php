@@ -70,22 +70,38 @@ JS;
         ],
     ]);
 
-    // 系主任显示菜单
-    if (!Yii::$app->user->isGuest && Yii::$app->user->identity->role == Adminuser::DIRECTOR) {
-        $menuItems = [
-            ['label' => '管理员管理', 'url' => ['/adminuser/index']],
-            ['label' => '用户管理', 'url' => ['/user/index']],
-            ['label' => '班级管理', 'url' => ['/classes/index']],
-            ['label' => '教室管理', 'url' => ['/classroom/index']],
-            ['label' => '课程管理', 'url' => ['/course/index']],
-            ['label' => '数据导入', 'url' => ['/site/setting']],
-        ];
-    }
-
-    // 其余管理员角色显示菜单
     if (!Yii::$app->user->isGuest) {
-        $otherRoles = [Adminuser::DEAN, Adminuser::LABORATORY, Adminuser::COUNSELOR];
-        if (in_array(Yii::$app->user->identity->role, $otherRoles, true)) {
+        // 院长,教学副院长,院办,系主任显示菜单
+        $roles = [Adminuser::BOSS, Adminuser::DEAN, Adminuser::OFFICE,Adminuser::DIRECTOR];
+        if (in_array(Yii::$app->user->identity->role, $roles,true)) {
+            $menuItems = [
+                ['label' => '管理员管理', 'url' => ['/adminuser/index']],
+                ['label' => '用户管理', 'url' => ['/user/index']],
+                ['label' => '班级管理', 'url' => ['/classes/index']],
+                ['label' => '教室管理', 'url' => ['/classroom/index']],
+                ['label' => '课程管理', 'url' => ['/course/index']],
+            ];
+            // 教学副院长增加 申请审核项
+            if (Yii::$app->user->identity->role == Adminuser::DEAN) {
+                $menuItems[] = '<li>'
+                    . Html::a('申请审核'.Audit::getUnauditedCount(Yii::$app->user->id),
+                        ['/audit/index'],
+                        ['class' => 'btn btn-link']
+                    ). '</li>';
+            }
+            // 院办增加 申请审核 与 数据导入 项
+            if (Yii::$app->user->identity->role == Adminuser::OFFICE) {
+                $menuItems[] = ['label' => '数据导入', 'url' => ['/site/setting']];
+                $menuItems[] = '<li>'
+                    . Html::a('申请审核'.Audit::getUnauditedCount(Yii::$app->user->id),
+                        ['/audit/index'],
+                        ['class' => 'btn btn-link']
+                    ). '</li>';
+            }
+        }
+
+        // 实验中心副主任显示菜单
+        if (Yii::$app->user->identity->role == Adminuser::LABORATORY) {
             $menuItems = [
                 '<li>'.
                 Html::a('申请审核'.Audit::getUnauditedCount(Yii::$app->user->id),
@@ -95,16 +111,23 @@ JS;
                 '</li>',
             ];
         }
-        // 辅导员角色增加课外活动菜单
-        if (Yii::$app->user->identity->role == Adminuser::COUNSELOR) {
-            $menuItems[] = ['label' => '课外活动', 'url' => ['/activity/index']];
-        }
-    }
 
-    // 修改密码项 与 登陆/注销 项
-    if (Yii::$app->user->isGuest) {
-        $menuItems[] = ['label' => '登陆', 'url' => ['/site/login']];
-    } else {
+        // 辅导员显示菜单
+        if (Yii::$app->user->identity->role == Adminuser::COUNSELOR) {
+            $menuItems = [
+                '<li>'.
+                Html::a('申请审核'.Audit::getUnauditedCount(Yii::$app->user->id),
+                    ['/audit/index'],
+                    ['class' => 'btn btn-link']
+                ).
+                '</li>',
+                ['label' => '课外活动', 'url' => ['/activity/index']],
+                ['label' => '用户管理', 'url' => ['/user/index']],
+                ['label' => '班级管理', 'url' => ['/classes/index']],
+            ];
+        }
+
+        // 修改密码项
         $menuItems[] = '<li>'
             . Html::a('修改密码', '#', [
                 'id'=>'resetpwd',
@@ -113,6 +136,8 @@ JS;
                 'class' => 'btn btn-link'
             ])
             . '</li>';
+
+        // 注销项
         $menuItems[] = '<li>'
             . Html::beginForm(['/site/logout'], 'post')
             . Html::submitButton(
@@ -121,6 +146,9 @@ JS;
             )
             . Html::endForm()
             . '</li>';
+    } else {
+        // 登陆菜单
+        $menuItems[] = ['label' => '登陆', 'url' => ['/site/login']];
     }
 
     echo Nav::widget([
@@ -150,7 +178,7 @@ JS;
     <div class="container">
         <p class="pull-left">&copy; 上海建桥学院 <?= date('Y') ?></p>
 
-        <p class="pull-right">技术支持 <a href="#">半度微凉</a></p>
+        <p class="pull-right">技术支持 <a href="#">陈如旭</a></p>
     </div>
 </footer>
 

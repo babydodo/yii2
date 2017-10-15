@@ -1,9 +1,18 @@
 <?php
+
 namespace backend\controllers;
 
 use backend\models\ExcelUpload;
 use backend\models\ResetpwdForm;
+use common\models\Activity;
 use common\models\Adminuser;
+use common\models\Application;
+use common\models\Audit;
+use common\models\Classes;
+use common\models\Course;
+use common\models\CourseRelationship;
+use common\models\Elective;
+use common\models\User;
 use Yii;
 use yii\base\Model;
 use yii\bootstrap\ActiveForm;
@@ -37,21 +46,23 @@ class SiteController extends Controller
                         'allow' => true,
                         'roles' => ['@'],
                     ],
-                    // 设置操作只允许系主任角色访问
+                    // 设置操作只允许院办访问的操作
                     [
                         'actions' => [
+                            'init',
                             'setting',
                             'upload-teachers',
                             'upload-classrooms',
                             'upload-adminusers',
                             'upload-students',
                             'upload-courses',
+                            'upload-admin',
                             'file-download',
                         ],
                         'allow' => true,
                         'matchCallback' => function ($rule, $action) {
                             if (!Yii::$app->user->isGuest) {
-                                return Yii::$app->user->identity->role == Adminuser::DIRECTOR ? true : false;
+                                return Yii::$app->user->identity->role == Adminuser::OFFICE ? true : false;
                             }
                             return false;
                         },
@@ -123,6 +134,7 @@ class SiteController extends Controller
      */
     public function actionLogin()
     {
+        // 如果已登陆
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
         }
@@ -169,7 +181,7 @@ class SiteController extends Controller
         $model = new ExcelUpload();
 
         // 上传文件
-        $fileDir = $this->uploadFile($model,'teacher');
+        $fileDir = $this->uploadFile($model, 'teacher');
 
         if ($fileDir) {
 
@@ -196,7 +208,7 @@ class SiteController extends Controller
         $model = new ExcelUpload();
 
         // 上传文件
-        $fileDir = $this->uploadFile($model,'classroom');
+        $fileDir = $this->uploadFile($model, 'classroom');
 
         if ($fileDir) {
 
@@ -224,7 +236,7 @@ class SiteController extends Controller
         $model = new ExcelUpload();
 
         // 上传文件
-        $fileDir = $this->uploadFile($model,'adminuser');
+        $fileDir = $this->uploadFile($model, 'adminuser');
 
         if ($fileDir) {
 
@@ -251,7 +263,7 @@ class SiteController extends Controller
         $model = new ExcelUpload();
 
         // 上传文件
-        $fileDir = $this->uploadFile($model,'student');
+        $fileDir = $this->uploadFile($model, 'student');
 
         if ($fileDir) {
 
@@ -278,7 +290,7 @@ class SiteController extends Controller
         $model = new ExcelUpload();
 
         // 上传文件
-        $fileDir = $this->uploadFile($model,'course');
+        $fileDir = $this->uploadFile($model, 'course');
 
         if ($fileDir) {
 
@@ -305,7 +317,7 @@ class SiteController extends Controller
         $model = new ExcelUpload();
 
         // 上传文件
-        $fileDir = $this->uploadFile($model,'admin');
+        $fileDir = $this->uploadFile($model, 'admin');
 
         if ($fileDir) {
 
@@ -398,11 +410,43 @@ class SiteController extends Controller
     }
 
     /**
-     * 测试
+     * 数据初始化
      */
-    public function actionTest()
+    public function actionInit()
     {
+        // 开启事务
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            // 删除所有活动
+            Activity::deleteAll();
+            // 删除所有审核记录
+            Audit::deleteAll();
+            // 删除所有调课申请
+            Application::deleteAll();
+            // 删除所有学生所有选课
+            Elective::deleteAll();
+            // 删除所有班级课程关联
+            CourseRelationship::deleteAll();
+            // 删除所有课程
+            Course::deleteAll();
 
+            // 如果是在8-11月份期间初始化,则删除毕业班级及学生
+            if (in_array(date('n'),range(8,11))) {
+                $classes_ids = Classes::find()->where(['like', 'name', 'B'.(date('y')-4).'-'])->column();
+                User::deleteAll(['class_id' => $classes_ids]);
+                Classes::deleteAll(['id' => $classes_ids]);
+            }
+
+            // 初始化成功
+            Yii::$app->getSession()->setFlash('success', '初始化完成...');
+            // 提交事务
+            $transaction->commit();
+        } catch (\Exception $e) {
+            $transaction->rollback();
+            Yii::$app->getSession()->setFlash('error', '初始化失败...');
+            throw $e;
+        }
+        return $this->redirect(['site/setting']);
     }
 
 

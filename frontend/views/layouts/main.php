@@ -112,7 +112,7 @@ JS;
     <div class="container">
         <p class="pull-left">&copy; 上海建桥学院 <?= date('Y') ?></p>
 
-        <p class="pull-right">技术支持 <a href="#">半度微凉</a></p>
+        <p class="pull-right">技术支持 <a href="#">陈如旭</a></p>
     </div>
 </footer>
 
