@@ -36,7 +36,7 @@ class LoginForm extends Model
     public function attributeLabels()
     {
         return [
-            'username' => '职工号',
+            'username' => '工号',
             'password' => '密码',
             'rememberMe' => '记住我',
         ];

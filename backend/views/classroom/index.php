@@ -17,7 +17,7 @@ $createUrl = Url::toRoute('create');
 $updateUrl = Url::toRoute('update');
 $js = <<<JS
     $('#create').on('click',function () {
-        $('#modal_id').find('.modal-title').html('新增管理员');
+        $('#modal_id').find('.modal-title').html('新增教室');
         $.get('{$createUrl}', {}, function (data) {
                 $('#modal_id').find('.modal-body').html(data);
             }

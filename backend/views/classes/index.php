@@ -21,13 +21,14 @@ $dropDownList = '<div class="form-group form-horizontal">
                             ' .$dropDownList . '
                         </div>
                 </div>';
-$dropDownList = str_replace("\n", "\\\n", $dropDownList);
+$dropDownList = str_replace("\n", "", $dropDownList);
+$dropDownList = str_replace("\r", "", $dropDownList);
 $createUrl = Url::toRoute('create');
 $showCoursesUrl = Url::toRoute('show-courses');
 $updateUrl = Url::toRoute('update');
 $js = <<<JS
     $('#create').on('click',function () {
-        $('#modal_id').find('.modal-title').html('新增管理员');
+        $('#modal_id').find('.modal-title').html('新增班级');
         $.get('{$createUrl}', {}, function (data) {
                 $('#modal_id').find('.modal-body').html(data);
             }
